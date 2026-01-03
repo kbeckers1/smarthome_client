@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@lit-labs/signals": "^0.2.0",
+    "@lit/context": "^1.1.6",
+    "lit": "^3.3.1"
+  },
+  "scripts": {
+    "dev": "node esbuild.config.mjs -w",
+    "build": "node esbuild.config.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.27.1",
+    "esbuild-plugin-ts": "^0.1.1-rev-1.0",
+    "esbuild-serve": "^1.0.1"
+  }
+}
