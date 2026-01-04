@@ -88,41 +88,43 @@ export class PopupSurface extends LitElement {
                     height: auto;
                 }
             </style>
-            <split-layout orientation="vertical" start-size="30px">
-                ${when(
-                    ('title' in this.shape) || ('icon' in this.shape),
-                    () => html`
-                        <div slot="start">
-                            <split-layout orientation="horizontal" start-size="30px">
-                                ${when(
-                                    'icon' in this.shape,
-                                    () => html`
-                                        <div slot="start">
-                                            <img src="${ifDefined(this.shape?.icon)}" height="22px" class="filter-black">
-                                        </div>
-                                    `
-                                )}
-                                ${when(
-                                    'title' in this.shape,
-                                    () => html`
-                                        <div slot="middle" style="vertical-align: middle;">
-                                            <md-title size="18px" .margined=${false}>${this.shape?.title}</md-title>
-                                        </div>
-                                    `
-                                )}
-                            </split-layout>
-                        </div>
-                    `
-                )}
-                ${when(
-                    'description' in this.shape,
-                    () => html`
-                        <div slot="middle" style="vertical-align: middle;">
-                            <md-richtext>${this.shape?.description}</md-richtext>
-                        </div>
-                    `
-                )}
-            </split-layout>
+            <div>
+                <split-layout orientation="vertical" start-size="30px">
+                    ${when(
+                        ('title' in this.shape) || ('icon' in this.shape),
+                        () => html`
+                            <div slot="start">
+                                <split-layout orientation="horizontal" start-size="30px">
+                                    ${when(
+                                        'icon' in this.shape,
+                                        () => html`
+                                            <div slot="start">
+                                                <img src="${ifDefined(this.shape?.icon)}" height="22px" class="filter-black">
+                                            </div>
+                                        `
+                                    )}
+                                    ${when(
+                                        'title' in this.shape,
+                                        () => html`
+                                            <div slot="middle" style="vertical-align: middle;">
+                                                <md-title size="18px" .margined=${false}>${this.shape?.title}</md-title>
+                                            </div>
+                                        `
+                                    )}
+                                </split-layout>
+                            </div>
+                        `
+                    )}
+                    ${when(
+                        'description' in this.shape,
+                        () => html`
+                            <div slot="middle" style="vertical-align: middle;">
+                                <md-richtext>${this.shape?.description}</md-richtext>
+                            </div>
+                        `
+                    )}
+                </split-layout>
+            </div>
         `;
     }
 }

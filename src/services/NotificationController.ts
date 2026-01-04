@@ -4,6 +4,7 @@ import { Notification } from "../components/general/Notification"
 import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
 import {createContext} from '@lit/context';
+import { animate } from '@lit-labs/motion'
 
 // TODO:
 // REALLY IMPORTANT!
@@ -44,18 +45,19 @@ export class NotificationController implements ReactiveController {
         new Promise((resolve) => {
             setTimeout(() => {
                 this.dismiss(firstMissing); // 'this' is correct here
-                console.log(this.notification_ownership)
-                console.log(this.ordered_notifications)
-            }, 3000);
+            }, 5000);
         })
         return firstMissing;
     }
 
     public dismiss(ownership_id: number) {
-        console.log('dismissed')
         const notification = this.notification_ownership.get(ownership_id);
-        this.ordered_notifications.slice(
-            this.ordered_notifications.findIndex(n => n === notification)
+
+        // because we want to animate our element actually leaving
+
+        this.ordered_notifications.splice(
+            this.ordered_notifications.findIndex(n => n === notification),
+            1
         );
         this.notification_ownership.delete(ownership_id)
         this.host.requestUpdate()
@@ -91,16 +93,26 @@ export class NotificationController implements ReactiveController {
                 this.ordered_notifications.length > 0,
                 () => html`
                     <div class="notification_overlay">
-                        <div class="wrapper">
+                        <motion-host class="wrapper">
                             ${repeat(
-                                Object.entries(this.ordered_notifications), 
+                                Object.entries(this.ordered_notifications).reverse(), 
                                 ([key, value]) => key, ([key, value]) => {
                                     return html`
-                                        <gl-notification .shape=${value}></gl-notification>
+                                        <gl-notification ${animate({
+                                            in: [
+                                                { opacity: 0, transform: 'translateY(-20px)' },
+                                                { opacity: 1, transform: 'translateY(0)' }
+                                            ],
+                                            out: [
+                                                { opacity: 1, transform: 'translateY(0)' },
+                                                { opacity: 0, transform: 'translateY(-20px)' }
+                                            ],
+                                        })}
+                                        .shape=${value}></gl-notification>
                                     `
                                 }
                             )}
-                        </div>
+                        </motion-host>
                     </div>
                         `
             )}

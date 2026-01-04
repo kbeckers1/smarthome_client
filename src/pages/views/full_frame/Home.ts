@@ -19,6 +19,7 @@ const base_style = html`
             height: 100%;
             width: 100%;
             overflow: auto;
+            display: block;
         }
     </style>    
 `
@@ -43,15 +44,18 @@ export class HomeLayout extends LitElement {
                 <md-title>
                     Home
                 </md-title>
-                <md-button .type=${Styles.Primary} .callback=${() => new LogOut(this.PopupController).start()}>
-                    Show Popup
-                </md-button>
-                <md-button .type=${Styles.Red} .callback=${() => this.NotificationController.notify({description: 'Hhello world!', style: "default"})}>
-                    Show Notification
-                </md-button>
-                <md-button .type=${Styles.Yellow} .callback=${() => {Router.route(6)}}>
-                    To Auth Page
-                </md-button>
+                <gl-surface>
+                    <md-button .type=${Styles.Primary} .callback=${() => new LogOut(this.PopupController).start()}>
+                        Show Popup
+                    </md-button>
+                    <md-button .type=${Styles.Red} .callback=${() => this.NotificationController.notify({description: 'Hhello world!', style: "default"})}>
+                        Show Notification
+                    </md-button>
+                    <md-button .type=${Styles.Yellow} .callback=${() => {Router.route(6)}}>
+                        To Auth Page
+                    </md-button>
+                </gl-surface>
+                <br/>
             </div>
         `;
     }

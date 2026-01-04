@@ -15,6 +15,10 @@ const base_style = html`
             border-radius: 15px;
             background-color: #ffffff;
             padding: 15px;
+            min-width: 0;
+            min-height: 0;
+            flex-shrink: 1;
+            overflow: auto;
         }
     </style>    
 `
@@ -29,8 +33,8 @@ export class Surface extends LitElement {
     constructor() {
         super();
         this.text = 'Continue';
-        this.width = "300px";
-        this.height = "300px";
+        this.width = "fit-content";
+        this.height = "auto";
     }
 
     render() {
@@ -42,7 +46,7 @@ export class Surface extends LitElement {
                     height: ${this.height};
                 }
             </style>
-            <p style="margin: 0px;">${this.text}</p>
+            <slot></slot>
         `;
     }
 }

@@ -69,7 +69,6 @@ export class PopupSurface extends LitElement {
     }
 
     updated(changed: any){ 
-        console.log(changed)
         this.style.setProperty('--width', this.shape.width || '');
     }
 

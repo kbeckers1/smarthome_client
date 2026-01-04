@@ -7,14 +7,12 @@ const base_style = html`
             --border-width: 5px;
         }
         .inner {
-            display: flex;
             padding: 10px;
             padding-top: 0px;
             height: 100%;
             width: 100%;
-            min-width: 0;
-            box-sizing: border-box;
             overflow: auto;
+            display: block;
         }
     </style>    
 `
@@ -33,6 +31,11 @@ export class PredictionLayout extends LitElement {
                 <md-title>
                     Weersvoorspellingen
                 </md-title>
+                <gl-surface width="400px;" height="300px;">
+                    <adv-graph>
+
+                    </adv-graph>
+                </gl-surface>
             </div>
         `;
     }

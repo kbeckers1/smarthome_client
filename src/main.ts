@@ -8,6 +8,7 @@ import './components/forms/Button'
 import './components/general/Popup'
 import './components/general/Notification'
 import './components/forms/TextField'
+import './components/advanced/Graph'
 
 // Layouts
 import './layouts/Split'

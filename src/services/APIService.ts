@@ -22,4 +22,4 @@ export class APIService implements ReactiveController {
     // methods
 }
 
-export const popupContext = createContext<APIService>('apiService');
+export const apiContext = createContext<APIService>('apiService');
