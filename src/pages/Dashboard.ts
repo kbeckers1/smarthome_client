@@ -8,6 +8,7 @@ import { provide } from '@lit/context';
 import { ContextProvider } from '@lit/context';
 import { notificationContext, NotificationController } from '../services/NotificationController';
 import { when } from 'lit/directives/when.js';
+import { apiContext, APIService } from '../services/APIService';
 
 const base_style = html`
     <style>
@@ -31,8 +32,9 @@ export class Dashboard extends LitElement {
     @property() text: string;
     private _onRoute: () => void;
 
-    private popupController = new ContextProvider(this, {context: popupContext, initialValue: new PopupController(this, 100)});
-    private notificationController = new ContextProvider(this, {context: notificationContext, initialValue: new NotificationController(this, 100)});
+    public popupController = new ContextProvider(this, {context: popupContext, initialValue: new PopupController(this, 100)});
+    public notificationController = new ContextProvider(this, {context: notificationContext, initialValue: new NotificationController(this, 100)});
+    public apiService = new ContextProvider(this, {context: apiContext, initialValue: new APIService(this)})
 
     constructor() {
         super();

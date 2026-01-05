@@ -9,6 +9,7 @@ import './components/general/Popup'
 import './components/general/Notification'
 import './components/forms/TextField'
 import './components/advanced/Graph'
+import './components/advanced/Table'
 
 // Layouts
 import './layouts/Split'

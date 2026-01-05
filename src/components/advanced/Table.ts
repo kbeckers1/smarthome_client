@@ -1,6 +1,15 @@
 import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
+type TableRow<T extends any[]> = T;
+
+interface TypedTable<T extends any[]> {
+  rows: TableRow<T>[];
+}
+
+// we define our column types & forms.
+
+
 const base_style = html`
     <style>
         :root { 
@@ -9,12 +18,13 @@ const base_style = html`
         :host {
 
         }
+        
     </style>    
 `
 
 // WebComponent
-@customElement('tag-name')
-export class ComponentName extends LitElement {
+@customElement('adv-table')
+export class Table extends LitElement {
     @property() text: string;
 
     constructor() {
@@ -25,7 +35,9 @@ export class ComponentName extends LitElement {
     render() {
         return html`
             ${base_style}
-            <p>${this.text}</p>
+            <table>
+
+            </table>
         `;
     }
 }
@@ -33,6 +45,15 @@ export class ComponentName extends LitElement {
 // Type definition
 declare global {
     interface HTMLElementTagNameMap {
-        "tag-name": ComponentName;
+        "adv-table": Table;
     }
 }
+
+/*
+WHAT THIS WILL LOOK LIKE:
+RULES:
+- max display amount
+- we maintain a set of active stuff
+- each 
+
+*/

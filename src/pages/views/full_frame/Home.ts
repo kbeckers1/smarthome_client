@@ -19,8 +19,13 @@ const base_style = html`
             height: 100%;
             width: 100%;
             overflow: auto;
-            display: block;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
         }
+        .container > * + * {
+            border-top: solid 1px #a2a2a2;
+        }  
     </style>    
 `
 
@@ -54,6 +59,10 @@ export class HomeLayout extends LitElement {
                     <md-button .type=${Styles.Yellow} .callback=${() => {Router.route(6)}}>
                         To Auth Page
                     </md-button>
+                </gl-surface>
+                <gl-surface height="300px;" width="600px;">
+                    <adv-table>
+                    </adv-table>
                 </gl-surface>
                 <br/>
             </div>

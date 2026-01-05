@@ -2,6 +2,7 @@ import {html, css, LitElement, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import { Popup } from '../../../components/general/Popup';
 import { when } from 'lit/directives/when.js';
+import { Router } from '../../../services/RouterService';
 
 const base_style = html`
     <style>
@@ -68,6 +69,7 @@ export class AuthLayout extends LitElement {
     button_callback(e: any) {
         console.log(this.current_username_input)
         console.log(this.current_password_input)
+        Router.route(0)
     }
 
     user_input_callback(e: any) {

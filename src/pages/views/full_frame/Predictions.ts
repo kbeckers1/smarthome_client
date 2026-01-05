@@ -12,7 +12,9 @@ const base_style = html`
             height: 100%;
             width: 100%;
             overflow: auto;
-            display: block;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
         }
     </style>    
 `

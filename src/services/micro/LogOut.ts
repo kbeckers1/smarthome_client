@@ -6,6 +6,7 @@ import { html } from "lit/static-html.js";
 import { Popup } from "../../components/general/Popup";
 import { PopupController } from "../PopupController";
 import { BaseFlow } from "./BaseFlow";
+import { Router } from "../RouterService"
 
 // actually the buttons should make a new Class because its technically a flow
 export class LogOut extends BaseFlow {
@@ -27,6 +28,7 @@ export class LogOut extends BaseFlow {
         // additional logic
         if (this.controller_id !== undefined) {
             this.controller.dismiss(this.controller_id);
+            Router.route(6)
         }
     }
 

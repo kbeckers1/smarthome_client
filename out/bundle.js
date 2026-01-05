@@ -2521,6 +2521,40 @@
     t3("adv-graph")
   ], Graph);
 
+  // src/components/advanced/Table.ts
+  var base_style9 = x`
+    <style>
+        :root { 
+
+        }
+        :host {
+
+        }
+        
+    </style>    
+`;
+  var Table = class extends i4 {
+    constructor() {
+      super();
+      __publicField(this, "text");
+      this.text = "Continue";
+    }
+    render() {
+      return x`
+            ${base_style9}
+            <table>
+
+            </table>
+        `;
+    }
+  };
+  __decorate([
+    n4()
+  ], Table.prototype, "text", 2);
+  Table = __decorate([
+    t3("adv-table")
+  ], Table);
+
   // src/layouts/Split.ts
   var SplitLayout = class extends i4 {
     constructor() {
@@ -3133,8 +3167,104 @@
   };
   var notificationContext = n10("notificationController");
 
+  // src/services/APIService.ts
+  var APIService = class {
+    constructor(host, timeout = 5e3) {
+      __publicField(this, "host");
+      __publicField(this, "timeout");
+      (this.host = host).addController(this);
+      this.timeout = timeout;
+    }
+    hostConnected() {
+    }
+    hostDisconnected() {
+    }
+    async request(req) {
+      try {
+        const url = req.Params ? `${req.Url}?${req.Params.toString()}` : req.Url;
+        const headers = {};
+        if (req.Headers) {
+          req.Headers.forEach((value, key) => headers[key] = value);
+        }
+        let body;
+        if (req.Body != null && req.Type !== "Get") {
+          body = JSON.stringify(req.Body);
+          headers["Content-Type"] = headers["Content-Type"] || "application/json";
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        const response = await fetch(url, {
+          method: req.Type,
+          headers,
+          body,
+          signal: controller.signal,
+          credentials: req.Cookies ? "include" : "same-origin"
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          if (req.Catch === true) {
+            this.handleHttpError(response);
+          }
+          return response.status;
+        }
+        const contentType = response.headers.get("Content-Type") || "";
+        if (contentType.includes("application/json")) {
+          return await response.json();
+        } else {
+          return await response.text();
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          this.host.notificationController.value.notify({
+            style: "default",
+            title: "Request timed out"
+          });
+          return 418;
+        }
+        this.host.notificationController.value.notify({
+          style: "default",
+          title: "Unknown network error"
+        });
+      }
+    }
+    async handleHttpError(response) {
+      const text = await response.text().catch(() => "");
+      switch (response.status) {
+        case 401:
+          this.host.notificationController.value.notify({
+            style: "default",
+            title: "Session expired; please reauthenticate."
+          });
+          Router.route(6);
+          break;
+        case 403:
+          this.host.notificationController.value.notify({
+            style: "default",
+            title: "You are not allowed to access this resource."
+          });
+          Router.route(6);
+          break;
+        case 500:
+          this.host.notificationController.value.notify({
+            style: "default",
+            title: "Internal Server Error"
+          });
+          Router.route(6);
+          break;
+        default:
+          this.host.notificationController.value.notify({
+            style: "default",
+            title: `${response.status} Server Error`
+          });
+          Router.route(6);
+          break;
+      }
+    }
+  };
+  var apiContext = n10("apiService");
+
   // src/pages/Dashboard.ts
-  var base_style9 = u5`
+  var base_style10 = u5`
     <style>
         :root { 
             --border-width: 5px;
@@ -3156,6 +3286,7 @@
       __publicField(this, "_onRoute");
       __publicField(this, "popupController", new i7(this, {context: popupContext, initialValue: new PopupController(this, 100)}));
       __publicField(this, "notificationController", new i7(this, {context: notificationContext, initialValue: new NotificationController(this, 100)}));
+      __publicField(this, "apiService", new i7(this, {context: apiContext, initialValue: new APIService(this)}));
       this.text = "Continue";
       this._onRoute = () => this.requestUpdate();
     }
@@ -3171,7 +3302,7 @@
       const route = Routes[Router.state.get()];
       const tag = String(route.pageSelector);
       return u5`
-            ${base_style9}
+            ${base_style10}
             <split-layout orientation="horizontal" start-size="220px">
                 ${n8(route.show === true, () => u5`
                         <div slot="start">
@@ -3198,7 +3329,7 @@
   ], Dashboard);
 
   // src/pages/views/Sidebar.ts
-  var base_style10 = x`
+  var base_style11 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3281,7 +3412,7 @@
       account.entry = Number(5);
       account.type = account_style;
       return x`
-            ${base_style10}
+            ${base_style11}
             <div class="inner">
                 <split-layout orientation="vertical" start-size="50px" end-size="50px">
                     <div slot="start" class="top">SmartHome</div>
@@ -3341,6 +3472,7 @@
     confirm() {
       if (this.controller_id !== void 0) {
         this.controller.dismiss(this.controller_id);
+        Router.route(6);
       }
     }
     cancel() {
@@ -3351,7 +3483,7 @@
   };
 
   // src/pages/views/full_frame/Home.ts
-  var base_style11 = x`
+  var base_style12 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3362,8 +3494,13 @@
             height: 100%;
             width: 100%;
             overflow: auto;
-            display: block;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
         }
+        .container > * + * {
+            border-top: solid 1px #a2a2a2;
+        }  
     </style>    
 `;
   var HomeLayout = class extends i4 {
@@ -3374,7 +3511,7 @@
     }
     render() {
       return x`
-            ${base_style11}
+            ${base_style12}
             <div class="inner">
                 <md-title>
                     Home
@@ -3392,6 +3529,10 @@
                         To Auth Page
                     </md-button>
                 </gl-surface>
+                <gl-surface height="300px;" width="600px;">
+                    <adv-table>
+                    </adv-table>
+                </gl-surface>
                 <br/>
             </div>
         `;
@@ -3408,7 +3549,7 @@
   ], HomeLayout);
 
   // src/pages/views/full_frame/Account.ts
-  var base_style12 = x`
+  var base_style13 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3431,7 +3572,7 @@
     }
     render() {
       return x`
-            ${base_style12}
+            ${base_style13}
             <div class="inner">
                 <md-title>
                     Account
@@ -3445,7 +3586,7 @@
   ], AccountLayout);
 
   // src/pages/views/full_frame/Devices.ts
-  var base_style13 = x`
+  var base_style14 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3468,7 +3609,7 @@
     }
     render() {
       return x`
-            ${base_style13}
+            ${base_style14}
             <div class="inner">
                 <md-title>
                     Apparaten
@@ -3482,7 +3623,7 @@
   ], DeviceLayout);
 
   // src/pages/views/full_frame/Layout.ts
-  var base_style14 = x`
+  var base_style15 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3505,7 +3646,7 @@
     }
     render() {
       return x`
-            ${base_style14}
+            ${base_style15}
             <div class="inner">
                 <md-title>
                     Plattegrond
@@ -3519,7 +3660,7 @@
   ], LayoutLayout);
 
   // src/pages/views/full_frame/Predictions.ts
-  var base_style15 = x`
+  var base_style16 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3530,7 +3671,9 @@
             height: 100%;
             width: 100%;
             overflow: auto;
-            display: block;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
         }
     </style>    
 `;
@@ -3540,7 +3683,7 @@
     }
     render() {
       return x`
-            ${base_style15}
+            ${base_style16}
             <div class="inner">
                 <md-title>
                     Weersvoorspellingen
@@ -3559,7 +3702,7 @@
   ], PredictionLayout);
 
   // src/pages/views/full_frame/Sensors.ts
-  var base_style16 = x`
+  var base_style17 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3582,7 +3725,7 @@
     }
     render() {
       return x`
-            ${base_style16}
+            ${base_style17}
             <div class="inner">
                 <md-title>
                     Sensoren
@@ -3596,7 +3739,7 @@
   ], SensorLayout);
 
   // src/pages/views/full_frame/Auth.ts
-  var base_style17 = x`
+  var base_style18 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3655,6 +3798,7 @@
     button_callback(e10) {
       console.log(this.current_username_input);
       console.log(this.current_password_input);
+      Router.route(0);
     }
     user_input_callback(e10) {
       this.current_username_input = e10.target.value;
@@ -3686,7 +3830,7 @@
             </div>
         `;
       return x`
-            ${base_style17}
+            ${base_style18}
             <div class="inner">
                 <div class="wrapper">
                     <gl-popup-surface .shape=${this.shape}></gl-popup-surface>               
