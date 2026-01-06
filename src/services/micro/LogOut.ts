@@ -7,14 +7,17 @@ import { Popup } from "../../components/general/Popup";
 import { PopupController } from "../PopupController";
 import { BaseFlow } from "./BaseFlow";
 import { Router } from "../RouterService"
+import { AuthService } from "../AuthService";
 
 // actually the buttons should make a new Class because its technically a flow
 export class LogOut extends BaseFlow {
     controller: PopupController
     controller_id?: number
+    auth: AuthService
 
-    constructor(controller: PopupController) {
+    constructor(controller: PopupController, auth: AuthService) {
         super()
+        this.auth = auth;
         this.controller = controller;
         return this;
     }
@@ -28,7 +31,7 @@ export class LogOut extends BaseFlow {
         // additional logic
         if (this.controller_id !== undefined) {
             this.controller.dismiss(this.controller_id);
-            Router.route(6)
+            this.auth.deauthenticate()
         }
     }
 
@@ -49,13 +52,15 @@ export class LogOut extends BaseFlow {
                 icon: "/public/home.svg",
                 callback: () => this.confirm(),
                 title: "Log out",
-                type: "Red"
+                type: "Red",
+                disabled: false
             },
             {
                 icon: "",
                 callback: () => this.cancel(),
                 title: "Cancel",
-                type: "Secondary"
+                type: "Secondary",
+                disabled: false
             }
         ]
     }

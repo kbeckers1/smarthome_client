@@ -1,8 +1,12 @@
 import {html, css, LitElement, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import { Popup } from '../../../components/general/Popup';
+import { Popup, PopupSurface } from '../../../components/general/Popup';
 import { when } from 'lit/directives/when.js';
 import { Router } from '../../../services/RouterService';
+import { authContext, AuthService, Result } from '../../../services/AuthService';
+import { consume } from '@lit/context';
+import { live } from 'lit/directives/live.js';
+import { notificationContext, NotificationController } from '../../../services/NotificationController';
 
 const base_style = html`
     <style>
@@ -35,15 +39,31 @@ const base_style = html`
 // WebComponent
 @customElement('ly-auth')
 export class AuthLayout extends LitElement {
+    @consume({context: authContext})
+    public AuthService!: AuthService;
+
+    @consume({context: notificationContext})
+    public NotificationController!: NotificationController
+
     @property({type: Boolean}) invalid_state: boolean
     current_username_input: string;
     current_password_input: string;
 
-    shape: Popup
+    @property({type: Object, attribute: false}) shape: Popup
+    @property({type: Object, attribute: false, hasChanged: () => true}) computedShape?: Popup;
+    @property({type: Number}) counter: number
+
+    private popupRef?: PopupSurface; // Add reference to popup
+
+    firstUpdated() {
+        // Get reference to the popup element
+        this.popupRef = this.shadowRoot?.querySelector('gl-popup-surface') as PopupSurface;
+    }
 
     constructor() {
         super();
         this.invalid_state = false;
+        this.counter = 0;
         this.button_callback = this.button_callback.bind(this);
         this.user_input_callback = this.user_input_callback.bind(this);
         this.passwd_input_callback = this.passwd_input_callback.bind(this);
@@ -60,16 +80,59 @@ export class AuthLayout extends LitElement {
                     type: "Primary",
                     title: "Log in",
                     icon: "",
+                    disabled: false,
                     callback: this.button_callback
                 }
             ]
         }
     }
 
-    button_callback(e: any) {
-        console.log(this.current_username_input)
-        console.log(this.current_password_input)
-        Router.route(0)
+    async button_callback(e: any) {
+        const newShape = {
+            ...this.shape,
+            button_bar: [
+                {
+                    ...this.shape.button_bar![0],
+                    disabled: true,
+                }
+            ]
+        };
+        this.shape = newShape;
+        this.counter += 1;
+
+        // Nuclear option: force complete re-render
+        // https://github.com/lit/lit/issues/4651
+        this.requestUpdate();
+        this.popupRef?.requestUpdate()
+
+        const res = await this.AuthService.generate_token(this.current_username_input, this.current_password_input)
+
+        // reset out button
+        const newShape2 = {
+            ...this.shape,
+            button_bar: [
+                {
+                    ...this.shape.button_bar![0],
+                    disabled: false,
+                }
+            ]
+        };
+        this.shape = newShape2;
+        this.counter += 1;
+
+        if (res == Result.Success) {
+            Router.route(0)
+            this.NotificationController.notify({
+                style: "default",
+                description: "Logged in"
+            })
+        } else {
+            this.invalid_state = true;
+        }
+
+        // Nuclear option: force complete re-render
+        this.requestUpdate();
+        this.popupRef?.requestUpdate()
     }
 
     user_input_callback(e: any) {
@@ -82,7 +145,7 @@ export class AuthLayout extends LitElement {
 
     // render hook
     render() {
-        this.shape.body = html`
+        const bodyContent = html`
             <style>
                 .auth-fields {
                     display: flex;
@@ -107,11 +170,12 @@ export class AuthLayout extends LitElement {
                 </md-textfield>
             </div>
         `
+        this.computedShape = {...this.shape, body: bodyContent} as Popup;
         return html`
             ${base_style}
             <div class="inner">
                 <div class="wrapper">
-                    <gl-popup-surface .shape=${this.shape}></gl-popup-surface>               
+                    <gl-popup-surface .counter="${this.counter}" .shape=${live(this.computedShape)}></gl-popup-surface>    
                 </div>
             </div>
         `;

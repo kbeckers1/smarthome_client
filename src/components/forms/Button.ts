@@ -1,5 +1,6 @@
 import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import { when } from "lit/directives/when.js";
 
 // Styles
 const base_style = html`
@@ -53,6 +54,11 @@ const red = html`
             border: solid 1px #a70000;
             background-color: #a70000;
         }
+        .inner:disabled {
+            border: solid 1px #ffb8b8;
+            background-color: #ffb8b8;
+            cursor: default;
+        }
     </style>
 `;
 
@@ -66,6 +72,11 @@ const yellow = html`
         .inner:hover {
             border: solid 1px #c49c00;
             background-color: #c49c00;
+        }
+        .inner:disabled {
+            border: solid 1px #dfcd83;
+            background-color: #dfcd83;
+            cursor: default;
         }
     </style>
 `;
@@ -95,6 +106,11 @@ const primary = html`
             border: solid 1px #007604;
             background-color: #007604;
         }
+        .inner:disabled {
+            border: solid 1px #78b27a;
+            background-color: #78b27a;
+            cursor: default;
+        }
     </style>
 `;
 
@@ -114,6 +130,7 @@ export class Button extends LitElement {
     // Use an accessor-backed property to avoid class-field shadowing.
     @property({type: Object}) type: TemplateResult;
     @property({type: String}) icon: string;
+    @property({type: Boolean}) disabled: boolean;
     @property({attribute: false}) callback: Function;
 
     constructor() {
@@ -121,10 +138,13 @@ export class Button extends LitElement {
         this.type = red;
         this.icon = "";
         this.callback = () => {};
+        this.disabled = false;
     }
 
     _handleClick(e: any) {
-        this.callback()
+        if (this.disabled === false) {
+            this.callback()
+        }
     }
 
     render() {
@@ -136,7 +156,7 @@ export class Button extends LitElement {
         return html`
             ${base_style}
             ${this.type}
-            <button class="inner" @click=${(e: Event) => this._handleClick(e)}>
+            <button class="inner" @click=${(e: Event) => this._handleClick(e)} ?disabled=${this.disabled} >
                 ${icon}
                 <slot></slot>
             </button>

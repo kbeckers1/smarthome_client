@@ -94,7 +94,9 @@ export class Sidebar extends LitElement {
             account_style = Styles.SELECTED
         } else {
             // quickly select the valid one
-            entries[selected].type = Styles.SELECTED
+            if (selected in entries) {
+                entries[selected].type = Styles.SELECTED
+            }
         }
 
         // then we bolt on our Account button

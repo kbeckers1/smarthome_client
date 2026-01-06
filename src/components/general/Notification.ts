@@ -29,26 +29,31 @@ const base_style = html`
 
 const red = html`
     <style>
-        :host {
-            border: solid 1px #c30000;
-            background: #ffefef;
+        .filter-black {
+            filter: brightness(0%);
         }
-        :host(:hover) {
-            border: solid 1px #a70000;
-            background-color: #ffe4e4;
+        :host {
+            display: flex;
+            border: solid 1px #ff0000;
+            border-radius: 15px;
+            background-color: #ffffff;
+            padding: 15px;
+            color: #ff0000;
         }
     </style>
 `;
-
 const yellow = html`
     <style>
-        :host {
-            border: solid 1px #cdbf00;
-            background: #feffef;
+        .filter-black {
+            filter: brightness(0%);
         }
-        :host(:hover) {
-            border: solid 1px #cdbf00;
-            background-color: #feffe4;
+        :host {
+            display: flex;
+            border: solid 1px #e1b400;
+            border-radius: 15px;
+            background-color: #ffffff;
+            padding: 15px;
+            color: #e1b400;
         }
     </style>
 `;

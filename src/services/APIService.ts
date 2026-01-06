@@ -9,7 +9,7 @@ import { Router } from "./RouterService";
 
 // This class controls our API state, provides API methods, and provides active auth state.
 export interface Request {
-    Type: 'Get' | 'Post' | 'Put' | 'Delete', 
+    Type: 'GET' | 'POST' | 'PUT' | 'DELETE', 
     Url: string,
     Body?: any,
     Headers?: Map<string, string>,
@@ -49,7 +49,7 @@ export class APIService implements ReactiveController {
 
             // Set JSON header automatically if body exists
             let body: string | undefined;
-            if (req.Body != null && req.Type !== 'Get') {
+            if (req.Body != null && req.Type !== 'GET') {
                 body = JSON.stringify(req.Body);
                 headers['Content-Type'] = headers['Content-Type'] || 'application/json';
             }
@@ -86,15 +86,16 @@ export class APIService implements ReactiveController {
         } catch (err) {
             if (err instanceof DOMException && err.name === 'AbortError') {
                 this.host.notificationController.value.notify({
-                    style: 'default',
-                    title: 'Request timed out'
+                    style: 'red',
+                    description: 'Request timed out'
                 });
                 return 418; // I'm a teapot
             }
             this.host.notificationController.value.notify({
-                style: 'default',
-                title: 'Unknown network error'
+                style: 'red',
+                description: 'Unknown network error'
             });
+            return 100;
         }
     }
 
@@ -103,29 +104,29 @@ export class APIService implements ReactiveController {
         switch (response.status) {
             case 401: // Unauthorized
                 this.host.notificationController.value.notify({
-                    style: 'default',
-                    title: 'Session expired; please reauthenticate.'
+                    style: 'red',
+                    description: 'Session expired; please reauthenticate.'
                 });
                 Router.route(6);
                 break;
             case 403: // Forbidden
                 this.host.notificationController.value.notify({
-                    style: 'default',
-                    title: 'You are not allowed to access this resource.'
+                    style: 'red',
+                    description: 'You are not allowed to access this resource.'
                 });
                 Router.route(6);
                 break;
             case 500: // Server error
                 this.host.notificationController.value.notify({
-                    style: 'default',
-                    title: 'Internal Server Error'
+                    style: 'red',
+                    description: 'Internal Server Error'
                 });
                 Router.route(6);
                 break;
             default:
                 this.host.notificationController.value.notify({
-                    style: 'default',
-                    title: `${response.status} Server Error`
+                    style: 'red',
+                    description: `${response.status} Server Error`
                 });
                 Router.route(6);
                 break;

@@ -137,7 +137,6 @@ export class GraphController implements ReactiveController {
         ctx.fillStyle = "#000000";
 
         for (let i = entries; i >= 0; i -= 1) {
-            console.log(i)
             const abs_pos = i * absolute_x_interval + start_x; // calculate position, with a small offset to display the initial number
             // we need to find out what to display.
             const text = `${i * (1 / x_range.step) }`.substring(0, MAX_AXIS_LENGTH);

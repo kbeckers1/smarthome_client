@@ -17,7 +17,7 @@ export interface NotificationWrapper {
 
 export class NotificationController implements ReactiveController {
     host: ReactiveControllerHost;
-    ordered_notifications: Array<Notification>
+    ordered_notifications: Array<NotificationWrapper>
     notification_ownership: Map<number, Notification>
 
     constructor(host: ReactiveControllerHost, timeout = 1000) {
@@ -37,7 +37,7 @@ export class NotificationController implements ReactiveController {
         const maxKey = keys.length ? Math.max(...keys) : 0;
         const firstMissing = keys.find(k => !this.notification_ownership.has(k)) ?? maxKey + 1;
 
-        this.ordered_notifications.push(notification)
+        this.ordered_notifications.push({notification: notification, id: firstMissing})
         this.notification_ownership.set(firstMissing, notification)
 
         // step 2: we create a promise that removes our 
@@ -54,10 +54,8 @@ export class NotificationController implements ReactiveController {
         const notification = this.notification_ownership.get(ownership_id);
 
         // because we want to animate our element actually leaving
-
-        this.ordered_notifications.splice(
-            this.ordered_notifications.findIndex(n => n === notification),
-            1
+        this.ordered_notifications = this.ordered_notifications.filter(
+            n => n.id !== ownership_id
         );
         this.notification_ownership.delete(ownership_id)
         this.host.requestUpdate()
@@ -95,22 +93,23 @@ export class NotificationController implements ReactiveController {
                     <div class="notification_overlay">
                         <motion-host class="wrapper">
                             ${repeat(
-                                Object.entries(this.ordered_notifications).reverse(), 
-                                ([key, value]) => key, ([key, value]) => {
-                                    return html`
-                                        <gl-notification ${animate({
-                                            in: [
-                                                { opacity: 0, transform: 'translateY(-20px)' },
-                                                { opacity: 1, transform: 'translateY(0)' }
-                                            ],
-                                            out: [
-                                                { opacity: 1, transform: 'translateY(0)' },
-                                                { opacity: 0, transform: 'translateY(-20px)' }
-                                            ],
-                                        })}
-                                        .shape=${value}></gl-notification>
-                                    `
-                                }
+                                this.ordered_notifications,
+                                (wrapper) => wrapper.id,
+                                (wrapper) => html`
+                                    <gl-notification
+                                    ${animate({
+                                        in: [
+                                        { opacity: 0, transform: 'translateY(-20px)' },
+                                        { opacity: 1, transform: 'translateY(0)' }
+                                        ],
+                                        out: [
+                                        { opacity: 1, transform: 'translateY(0)' },
+                                        { opacity: 0, transform: 'translateY(-20px)' }
+                                        ],
+                                    })}
+                                    .shape=${wrapper.notification}
+                                    ></gl-notification>
+                                `
                             )}
                         </motion-host>
                     </div>

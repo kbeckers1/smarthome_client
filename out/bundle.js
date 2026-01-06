@@ -353,16 +353,16 @@
   }
   var V = (t8, i9) => {
     const s11 = t8.length - 1, o13 = [];
-    let r12, l7 = i9 === 2 ? "<svg>" : i9 === 3 ? "<math>" : "", c9 = f2;
+    let r12, l8 = i9 === 2 ? "<svg>" : i9 === 3 ? "<math>" : "", c9 = f2;
     for (let i10 = 0; i10 < s11; i10++) {
       const s12 = t8[i10];
       let a5, u7, d4 = -1, y4 = 0;
       for (; y4 < s12.length && (c9.lastIndex = y4, u7 = c9.exec(s12), u7 !== null); )
         y4 = c9.lastIndex, c9 === f2 ? u7[1] === "!--" ? c9 = v : u7[1] !== void 0 ? c9 = _ : u7[2] !== void 0 ? ($.test(u7[2]) && (r12 = RegExp("</" + u7[2], "g")), c9 = m) : u7[3] !== void 0 && (c9 = m) : c9 === m ? u7[0] === ">" ? (c9 = r12 ?? f2, d4 = -1) : u7[1] === void 0 ? d4 = -2 : (d4 = c9.lastIndex - u7[2].length, a5 = u7[1], c9 = u7[3] === void 0 ? m : u7[3] === '"' ? g : p2) : c9 === g || c9 === p2 ? c9 = m : c9 === v || c9 === _ ? c9 = f2 : (c9 = m, r12 = void 0);
       const x3 = c9 === m && t8[i10 + 1].startsWith("/>") ? " " : "";
-      l7 += c9 === f2 ? s12 + n3 : d4 >= 0 ? (o13.push(a5), s12.slice(0, d4) + e3 + s12.slice(d4) + h2 + x3) : s12 + h2 + (d4 === -2 ? i10 : x3);
+      l8 += c9 === f2 ? s12 + n3 : d4 >= 0 ? (o13.push(a5), s12.slice(0, d4) + e3 + s12.slice(d4) + h2 + x3) : s12 + h2 + (d4 === -2 ? i10 : x3);
     }
-    return [P(t8, l7 + (t8[s11] || "<?>") + (i9 === 2 ? "</svg>" : i9 === 3 ? "</math>" : "")), o13];
+    return [P(t8, l8 + (t8[s11] || "<?>") + (i9 === 2 ? "</svg>" : i9 === 3 ? "</math>" : "")), o13];
   };
   var N = class {
     constructor({strings: t8, _$litType$: s11}, n12) {
@@ -428,13 +428,13 @@
     u(t8) {
       const {el: {content: i9}, parts: s11} = this._$AD, e10 = (t8?.creationScope ?? r3).importNode(i9, true);
       C.currentNode = e10;
-      let h7 = C.nextNode(), o13 = 0, n12 = 0, l7 = s11[0];
-      for (; l7 !== void 0; ) {
-        if (o13 === l7.index) {
+      let h7 = C.nextNode(), o13 = 0, n12 = 0, l8 = s11[0];
+      for (; l8 !== void 0; ) {
+        if (o13 === l8.index) {
           let i10;
-          l7.type === 2 ? i10 = new R(h7, h7.nextSibling, this, t8) : l7.type === 1 ? i10 = new l7.ctor(h7, l7.name, l7.strings, this, t8) : l7.type === 6 && (i10 = new z(h7, this, t8)), this._$AV.push(i10), l7 = s11[++n12];
+          l8.type === 2 ? i10 = new R(h7, h7.nextSibling, this, t8) : l8.type === 1 ? i10 = new l8.ctor(h7, l8.name, l8.strings, this, t8) : l8.type === 6 && (i10 = new z(h7, this, t8)), this._$AV.push(i10), l8 = s11[++n12];
         }
-        o13 !== l7?.index && (h7 = C.nextNode(), o13++);
+        o13 !== l8?.index && (h7 = C.nextNode(), o13++);
       }
       return C.currentNode = r3, e10;
     }
@@ -1353,9 +1353,9 @@
   var f3 = (o13) => o13.strings === void 0;
   var r5 = () => document.createComment("");
   var s5 = (o13, i9, n12) => {
-    const e10 = o13._$AA.parentNode, l7 = i9 === void 0 ? o13._$AB : i9._$AA;
+    const e10 = o13._$AA.parentNode, l8 = i9 === void 0 ? o13._$AB : i9._$AA;
     if (n12 === void 0) {
-      const i10 = e10.insertBefore(r5(), l7), d4 = e10.insertBefore(r5(), l7);
+      const i10 = e10.insertBefore(r5(), l8), d4 = e10.insertBefore(r5(), l8);
       n12 = new t5(i10, d4, o13, o13.options);
     } else {
       const t8 = n12._$AB.nextSibling, i10 = n12._$AM, d4 = i10 !== o13;
@@ -1363,11 +1363,11 @@
         let t9;
         n12._$AQ?.(o13), n12._$AM = o13, n12._$AP !== void 0 && (t9 = o13._$AU) !== i10._$AU && n12._$AP(t9);
       }
-      if (t8 !== l7 || d4) {
+      if (t8 !== l8 || d4) {
         let o14 = n12._$AA;
         for (; o14 !== t8; ) {
           const t9 = o14.nextSibling;
-          e10.insertBefore(o14, l7), o14 = t9;
+          e10.insertBefore(o14, l8), o14 = t9;
         }
       }
     }
@@ -1519,7 +1519,7 @@
    */
   var l4 = Signal.State;
   var o9 = Signal.Computed;
-  var r9 = (l7, o13) => new Signal.State(l7, o13);
+  var r9 = (l8, o13) => new Signal.State(l8, o13);
 
   // src/services/RouterService.ts
   var Routes = {
@@ -1533,7 +1533,7 @@
   };
   var _Router = class {
     constructor() {
-      __publicField(this, "state", r9(0));
+      __publicField(this, "state", r9(6));
     }
     route(route) {
       this.state.set(route);
@@ -1893,6 +1893,11 @@
             border: solid 1px #a70000;
             background-color: #a70000;
         }
+        .inner:disabled {
+            border: solid 1px #ffb8b8;
+            background-color: #ffb8b8;
+            cursor: default;
+        }
     </style>
 `;
   var yellow = x`
@@ -1905,6 +1910,11 @@
         .inner:hover {
             border: solid 1px #c49c00;
             background-color: #c49c00;
+        }
+        .inner:disabled {
+            border: solid 1px #dfcd83;
+            background-color: #dfcd83;
+            cursor: default;
         }
     </style>
 `;
@@ -1932,6 +1942,11 @@
             border: solid 1px #007604;
             background-color: #007604;
         }
+        .inner:disabled {
+            border: solid 1px #78b27a;
+            background-color: #78b27a;
+            cursor: default;
+        }
     </style>
 `;
   var Styles2 = {
@@ -1945,14 +1960,18 @@
       super();
       __publicField(this, "type");
       __publicField(this, "icon");
+      __publicField(this, "disabled");
       __publicField(this, "callback");
       this.type = red;
       this.icon = "";
       this.callback = () => {
       };
+      this.disabled = false;
     }
     _handleClick(e10) {
-      this.callback();
+      if (this.disabled === false) {
+        this.callback();
+      }
     }
     render() {
       let icon;
@@ -1962,7 +1981,7 @@
       return x`
             ${base_style5}
             ${this.type}
-            <button class="inner" @click=${(e10) => this._handleClick(e10)}>
+            <button class="inner" @click=${(e10) => this._handleClick(e10)} ?disabled=${this.disabled} >
                 ${icon}
                 <slot></slot>
             </button>
@@ -1975,6 +1994,9 @@
   __decorate([
     n4({type: String})
   ], Button.prototype, "icon", 2);
+  __decorate([
+    n4({type: Boolean})
+  ], Button.prototype, "disabled", 2);
   __decorate([
     n4({attribute: false})
   ], Button.prototype, "callback", 2);
@@ -2000,8 +2022,8 @@
    */
   var u4 = (e10, s11, t8) => {
     const r12 = new Map();
-    for (let l7 = s11; l7 <= t8; l7++)
-      r12.set(e10[l7], l7);
+    for (let l8 = s11; l8 <= t8; l8++)
+      r12.set(e10[l8], l8);
     return r12;
   };
   var c5 = e6(class extends i6 {
@@ -2012,11 +2034,11 @@
     dt(e10, s11, t8) {
       let r12;
       t8 === void 0 ? t8 = s11 : s11 !== void 0 && (r12 = s11);
-      const l7 = [], o13 = [];
+      const l8 = [], o13 = [];
       let i9 = 0;
       for (const s12 of e10)
-        l7[i9] = r12 ? r12(s12, i9) : i9, o13[i9] = t8(s12, i9), i9++;
-      return {values: o13, keys: l7};
+        l8[i9] = r12 ? r12(s12, i9) : i9, o13[i9] = t8(s12, i9), i9++;
+      return {values: o13, keys: l8};
     }
     render(e10, s11, t8) {
       return this.dt(e10, s11, t8).values;
@@ -2069,8 +2091,9 @@
   var PopupSurface = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "shape");
-      this.shape = {width: "500px"};
+      __publicField(this, "shape", {width: "500"});
+      __publicField(this, "counter");
+      this.counter = 0;
       this.style.setProperty("--width", this.shape.width || "");
     }
     updated(changed) {
@@ -2093,7 +2116,7 @@
                     `)}
                 ${n8("button_bar" in this.shape, () => x`
                         <div slot="end" class="slot" style="vertical-align: middle; justify-content: flex-end; padding: 10px!important;">
-                            ${c5(this.shape.button_bar ?? [], (item) => item.title, (item, index) => {
+                            ${c5(this.shape.button_bar ?? [], (item) => `${item.title}-${item.disabled}`, (item, index) => {
         let button_type = Styles2.Primary;
         switch (item.type) {
           case "Primary":
@@ -2107,7 +2130,7 @@
             break;
         }
         return x`
-                                        <md-button .type=${button_type} .callback=${item.callback} icon=${item.icon}>${item.title}</md-button>
+                                        <md-button .type=${button_type} .callback=${item.callback} icon=${item.icon} .disabled=${item.disabled}>${item.title}</md-button>
                                     `;
       })}
                         </div>
@@ -2148,8 +2171,11 @@
         }  
     `);
   __decorate([
-    n4({type: Object})
+    n4({type: Object, attribute: false})
   ], PopupSurface.prototype, "shape", 2);
+  __decorate([
+    n4({type: Number})
+  ], PopupSurface.prototype, "counter", 2);
   PopupSurface = __decorate([
     t3("gl-popup-surface")
   ], PopupSurface);
@@ -2212,25 +2238,31 @@
 `;
   var red2 = u5`
     <style>
-        :host {
-            border: solid 1px #c30000;
-            background: #ffefef;
+        .filter-black {
+            filter: brightness(0%);
         }
-        :host(:hover) {
-            border: solid 1px #a70000;
-            background-color: #ffe4e4;
+        :host {
+            display: flex;
+            border: solid 1px #ff0000;
+            border-radius: 15px;
+            background-color: #ffffff;
+            padding: 15px;
+            color: #ff0000;
         }
     </style>
 `;
   var yellow2 = u5`
     <style>
-        :host {
-            border: solid 1px #cdbf00;
-            background: #feffef;
+        .filter-black {
+            filter: brightness(0%);
         }
-        :host(:hover) {
-            border: solid 1px #cdbf00;
-            background-color: #feffe4;
+        :host {
+            display: flex;
+            border: solid 1px #e1b400;
+            border-radius: 15px;
+            background-color: #ffffff;
+            padding: 15px;
+            color: #e1b400;
         }
     </style>
 `;
@@ -2434,7 +2466,6 @@
       ctx.font = "14px 'Funnel Display'";
       ctx.fillStyle = "#000000";
       for (let i9 = entries; i9 >= 0; i9 -= 1) {
-        console.log(i9);
         const abs_pos = i9 * absolute_x_interval + start_x;
         const text = `${i9 * (1 / x_range.step)}`.substring(0, MAX_AXIS_LENGTH);
         const text_in_pixels = ctx.measureText(text).width;
@@ -3101,7 +3132,7 @@
       const keys = Array.from(this.notification_ownership.keys());
       const maxKey = keys.length ? Math.max(...keys) : 0;
       const firstMissing = keys.find((k2) => !this.notification_ownership.has(k2)) ?? maxKey + 1;
-      this.ordered_notifications.push(notification);
+      this.ordered_notifications.push({notification, id: firstMissing});
       this.notification_ownership.set(firstMissing, notification);
       this.host.requestUpdate();
       new Promise((resolve) => {
@@ -3113,7 +3144,7 @@
     }
     dismiss(ownership_id) {
       const notification = this.notification_ownership.get(ownership_id);
-      this.ordered_notifications.splice(this.ordered_notifications.findIndex((n12) => n12 === notification), 1);
+      this.ordered_notifications = this.ordered_notifications.filter((n12) => n12.id !== ownership_id);
       this.notification_ownership.delete(ownership_id);
       this.host.requestUpdate();
     }
@@ -3144,21 +3175,21 @@
             ${n8(this.ordered_notifications.length > 0, () => x`
                     <div class="notification_overlay">
                         <motion-host class="wrapper">
-                            ${c5(Object.entries(this.ordered_notifications).reverse(), ([key, value]) => key, ([key, value]) => {
-        return x`
-                                        <gl-notification ${F({
-          in: [
-            {opacity: 0, transform: "translateY(-20px)"},
-            {opacity: 1, transform: "translateY(0)"}
-          ],
-          out: [
-            {opacity: 1, transform: "translateY(0)"},
-            {opacity: 0, transform: "translateY(-20px)"}
-          ]
-        })}
-                                        .shape=${value}></gl-notification>
-                                    `;
+                            ${c5(this.ordered_notifications, (wrapper) => wrapper.id, (wrapper) => x`
+                                    <gl-notification
+                                    ${F({
+        in: [
+          {opacity: 0, transform: "translateY(-20px)"},
+          {opacity: 1, transform: "translateY(0)"}
+        ],
+        out: [
+          {opacity: 1, transform: "translateY(0)"},
+          {opacity: 0, transform: "translateY(-20px)"}
+        ]
       })}
+                                    .shape=${wrapper.notification}
+                                    ></gl-notification>
+                                `)}
                         </motion-host>
                     </div>
                         `)}
@@ -3187,7 +3218,7 @@
           req.Headers.forEach((value, key) => headers[key] = value);
         }
         let body;
-        if (req.Body != null && req.Type !== "Get") {
+        if (req.Body != null && req.Type !== "GET") {
           body = JSON.stringify(req.Body);
           headers["Content-Type"] = headers["Content-Type"] || "application/json";
         }
@@ -3216,15 +3247,16 @@
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
           this.host.notificationController.value.notify({
-            style: "default",
-            title: "Request timed out"
+            style: "red",
+            description: "Request timed out"
           });
           return 418;
         }
         this.host.notificationController.value.notify({
-          style: "default",
-          title: "Unknown network error"
+          style: "red",
+          description: "Unknown network error"
         });
+        return 100;
       }
     }
     async handleHttpError(response) {
@@ -3232,29 +3264,29 @@
       switch (response.status) {
         case 401:
           this.host.notificationController.value.notify({
-            style: "default",
-            title: "Session expired; please reauthenticate."
+            style: "red",
+            description: "Session expired; please reauthenticate."
           });
           Router.route(6);
           break;
         case 403:
           this.host.notificationController.value.notify({
-            style: "default",
-            title: "You are not allowed to access this resource."
+            style: "red",
+            description: "You are not allowed to access this resource."
           });
           Router.route(6);
           break;
         case 500:
           this.host.notificationController.value.notify({
-            style: "default",
-            title: "Internal Server Error"
+            style: "red",
+            description: "Internal Server Error"
           });
           Router.route(6);
           break;
         default:
           this.host.notificationController.value.notify({
-            style: "default",
-            title: `${response.status} Server Error`
+            style: "red",
+            description: `${response.status} Server Error`
           });
           Router.route(6);
           break;
@@ -3262,6 +3294,66 @@
     }
   };
   var apiContext = n10("apiService");
+
+  // src/services/AuthService.ts
+  var Result;
+  (function(Result2) {
+    Result2[Result2["Success"] = 0] = "Success";
+    Result2[Result2["Fail"] = 1] = "Fail";
+  })(Result || (Result = {}));
+  var AuthService = class {
+    constructor(host) {
+      __publicField(this, "host");
+      __publicField(this, "api");
+      __publicField(this, "token");
+      __publicField(this, "authenticated");
+      this.host = host;
+      this.api = host.apiService.value;
+      this.authenticated = false;
+    }
+    async generate_token(username, password) {
+      const res = await this.api.request({
+        Url: "http://localhost:5000/api/login",
+        Catch: false,
+        Type: "POST",
+        Authorization: false,
+        Body: {
+          naam: username,
+          wachtwoord: password
+        }
+      });
+      if (typeof res === "number") {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Incorrect username or password."
+        });
+        return 1;
+      }
+      this.authenticated = true;
+      this.token = res["token"];
+      return 0;
+    }
+    deauthenticate() {
+      const temp_token = this.token;
+      this.authenticated = false;
+      this.token = "";
+      this.host.notificationController.value.notify({
+        style: "default",
+        description: "Logged out"
+      });
+      Router.route(6);
+      const res = this.api.request({
+        Url: "http://localhost:5000/api/logout",
+        Catch: false,
+        Type: "POST",
+        Authorization: false,
+        Params: new URLSearchParams({
+          token: temp_token
+        })
+      });
+    }
+  };
+  var authContext = n10("authController");
 
   // src/pages/Dashboard.ts
   var base_style10 = u5`
@@ -3287,6 +3379,7 @@
       __publicField(this, "popupController", new i7(this, {context: popupContext, initialValue: new PopupController(this, 100)}));
       __publicField(this, "notificationController", new i7(this, {context: notificationContext, initialValue: new NotificationController(this, 100)}));
       __publicField(this, "apiService", new i7(this, {context: apiContext, initialValue: new APIService(this)}));
+      __publicField(this, "authService", new i7(this, {context: authContext, initialValue: new AuthService(this)}));
       this.text = "Continue";
       this._onRoute = () => this.requestUpdate();
     }
@@ -3404,7 +3497,9 @@
       if (selected2 == 5) {
         account_style = Styles.SELECTED;
       } else {
-        entries[selected2].type = Styles.SELECTED;
+        if (selected2 in entries) {
+          entries[selected2].type = Styles.SELECTED;
+        }
       }
       const account = document.createElement("menu-entry");
       account.title = Routes[5].vanityName;
@@ -3437,10 +3532,11 @@
 
   // src/services/micro/LogOut.ts
   var LogOut = class extends BaseFlow {
-    constructor(controller) {
+    constructor(controller, auth) {
       super();
       __publicField(this, "controller");
       __publicField(this, "controller_id");
+      __publicField(this, "auth");
       __publicField(this, "popup", {
         width: "400px",
         title: {
@@ -3452,16 +3548,19 @@
             icon: "/public/home.svg",
             callback: () => this.confirm(),
             title: "Log out",
-            type: "Red"
+            type: "Red",
+            disabled: false
           },
           {
             icon: "",
             callback: () => this.cancel(),
             title: "Cancel",
-            type: "Secondary"
+            type: "Secondary",
+            disabled: false
           }
         ]
       });
+      this.auth = auth;
       this.controller = controller;
       return this;
     }
@@ -3472,7 +3571,7 @@
     confirm() {
       if (this.controller_id !== void 0) {
         this.controller.dismiss(this.controller_id);
-        Router.route(6);
+        this.auth.deauthenticate();
       }
     }
     cancel() {
@@ -3508,6 +3607,7 @@
       super();
       __publicField(this, "PopupController");
       __publicField(this, "NotificationController");
+      __publicField(this, "AuthService");
     }
     render() {
       return x`
@@ -3517,7 +3617,7 @@
                     Home
                 </md-title>
                 <gl-surface>
-                    <md-button .type=${Styles2.Primary} .callback=${() => new LogOut(this.PopupController).start()}>
+                    <md-button .type=${Styles2.Primary} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
                         Show Popup
                     </md-button>
                     <md-button .type=${Styles2.Red} .callback=${() => this.NotificationController.notify({description: "Hhello world!", style: "default"})}>
@@ -3544,6 +3644,9 @@
   __decorate([
     c7({context: notificationContext})
   ], HomeLayout.prototype, "NotificationController", 2);
+  __decorate([
+    c7({context: authContext})
+  ], HomeLayout.prototype, "AuthService", 2);
   HomeLayout = __decorate([
     t3("ly-home")
   ], HomeLayout);
@@ -3738,6 +3841,38 @@
     t3("ly-sensors")
   ], SensorLayout);
 
+  // node_modules/lit-html/directives/live.js
+  /**
+   * @license
+   * Copyright 2020 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   */
+  var l7 = e6(class extends i6 {
+    constructor(r12) {
+      if (super(r12), r12.type !== t4.PROPERTY && r12.type !== t4.ATTRIBUTE && r12.type !== t4.BOOLEAN_ATTRIBUTE)
+        throw Error("The `live` directive is not allowed on child or event bindings");
+      if (!f3(r12))
+        throw Error("`live` bindings can only contain a single expression");
+    }
+    render(r12) {
+      return r12;
+    }
+    update(i9, [t8]) {
+      if (t8 === T || t8 === E)
+        return t8;
+      const o13 = i9.element, l8 = i9.name;
+      if (i9.type === t4.PROPERTY) {
+        if (t8 === o13[l8])
+          return T;
+      } else if (i9.type === t4.BOOLEAN_ATTRIBUTE) {
+        if (!!t8 === o13.hasAttribute(l8))
+          return T;
+      } else if (i9.type === t4.ATTRIBUTE && o13.getAttribute(l8) === t8 + "")
+        return T;
+      return m2(i9), t8;
+    }
+  });
+
   // src/pages/views/full_frame/Auth.ts
   var base_style18 = x`
     <style>
@@ -3769,11 +3904,17 @@
   var AuthLayout = class extends i4 {
     constructor() {
       super();
+      __publicField(this, "AuthService");
+      __publicField(this, "NotificationController");
       __publicField(this, "invalid_state");
       __publicField(this, "current_username_input");
       __publicField(this, "current_password_input");
       __publicField(this, "shape");
+      __publicField(this, "computedShape");
+      __publicField(this, "counter");
+      __publicField(this, "popupRef");
       this.invalid_state = false;
+      this.counter = 0;
       this.button_callback = this.button_callback.bind(this);
       this.user_input_callback = this.user_input_callback.bind(this);
       this.passwd_input_callback = this.passwd_input_callback.bind(this);
@@ -3790,15 +3931,52 @@
             type: "Primary",
             title: "Log in",
             icon: "",
+            disabled: false,
             callback: this.button_callback
           }
         ]
       };
     }
-    button_callback(e10) {
-      console.log(this.current_username_input);
-      console.log(this.current_password_input);
-      Router.route(0);
+    firstUpdated() {
+      this.popupRef = this.shadowRoot?.querySelector("gl-popup-surface");
+    }
+    async button_callback(e10) {
+      const newShape = {
+        ...this.shape,
+        button_bar: [
+          {
+            ...this.shape.button_bar[0],
+            disabled: true
+          }
+        ]
+      };
+      this.shape = newShape;
+      this.counter += 1;
+      this.requestUpdate();
+      this.popupRef?.requestUpdate();
+      const res = await this.AuthService.generate_token(this.current_username_input, this.current_password_input);
+      const newShape2 = {
+        ...this.shape,
+        button_bar: [
+          {
+            ...this.shape.button_bar[0],
+            disabled: false
+          }
+        ]
+      };
+      this.shape = newShape2;
+      this.counter += 1;
+      if (res == Result.Success) {
+        Router.route(0);
+        this.NotificationController.notify({
+          style: "default",
+          description: "Logged in"
+        });
+      } else {
+        this.invalid_state = true;
+      }
+      this.requestUpdate();
+      this.popupRef?.requestUpdate();
     }
     user_input_callback(e10) {
       this.current_username_input = e10.target.value;
@@ -3807,7 +3985,7 @@
       this.current_password_input = e10.target.value;
     }
     render() {
-      this.shape.body = x`
+      const bodyContent = x`
             <style>
                 .auth-fields {
                     display: flex;
@@ -3829,19 +4007,35 @@
                 </md-textfield>
             </div>
         `;
+      this.computedShape = {...this.shape, body: bodyContent};
       return x`
             ${base_style18}
             <div class="inner">
                 <div class="wrapper">
-                    <gl-popup-surface .shape=${this.shape}></gl-popup-surface>               
+                    <gl-popup-surface .counter="${this.counter}" .shape=${l7(this.computedShape)}></gl-popup-surface>    
                 </div>
             </div>
         `;
     }
   };
   __decorate([
+    c7({context: authContext})
+  ], AuthLayout.prototype, "AuthService", 2);
+  __decorate([
+    c7({context: notificationContext})
+  ], AuthLayout.prototype, "NotificationController", 2);
+  __decorate([
     n4({type: Boolean})
   ], AuthLayout.prototype, "invalid_state", 2);
+  __decorate([
+    n4({type: Object, attribute: false})
+  ], AuthLayout.prototype, "shape", 2);
+  __decorate([
+    n4({type: Object, attribute: false, hasChanged: () => true})
+  ], AuthLayout.prototype, "computedShape", 2);
+  __decorate([
+    n4({type: Number})
+  ], AuthLayout.prototype, "counter", 2);
   AuthLayout = __decorate([
     t3("ly-auth")
   ], AuthLayout);

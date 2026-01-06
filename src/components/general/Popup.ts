@@ -9,6 +9,7 @@ export interface Button {
     callback: Function,
     title: string,
     icon: string,
+    disabled: boolean,
     type: "Primary" | "Secondary" | "Red"
 }
 export interface Title {
@@ -60,11 +61,12 @@ export class PopupSurface extends LitElement {
             border-top: solid 1px #a2a2a2;
         }  
     `
-    @property({type: Object}) shape: Popup
+    @property({type: Object, attribute: false}) shape: Popup = {width: '500'};
+    @property({type: Number}) counter: number
 
     constructor() {
         super();
-        this.shape = { width: '500px'}
+        this.counter = 0;
         this.style.setProperty('--width', this.shape.width || '');
     }
 
@@ -100,7 +102,7 @@ export class PopupSurface extends LitElement {
                         <div slot="end" class="slot" style="vertical-align: middle; justify-content: flex-end; padding: 10px!important;">
                             ${repeat(
                                 this.shape.button_bar ?? [],
-                                (item) => item.title, (item, index) => {
+                                (item) => `${item.title}-${item.disabled}`, (item, index) => {
                                     let button_type = Styles.Primary
                                     switch(item.type) {
                                         case 'Primary':
@@ -114,7 +116,7 @@ export class PopupSurface extends LitElement {
                                             break;
                                     }
                                     return html`
-                                        <md-button .type=${button_type} .callback=${item.callback} icon=${item.icon}>${item.title}</md-button>
+                                        <md-button .type=${button_type} .callback=${item.callback} icon=${item.icon} .disabled=${item.disabled}>${item.title}</md-button>
                                     `
                                 }
                             )}

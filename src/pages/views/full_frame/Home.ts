@@ -7,6 +7,7 @@ import { popupContext, PopupController } from '../../../services/PopupController
 import { consume } from '@lit/context';
 import { notificationContext, NotificationController } from '../../../services/NotificationController';
 import { Router, Routes } from '../../../services/RouterService';
+import { authContext, AuthService } from '../../../services/AuthService';
 
 const base_style = html`
     <style>
@@ -38,6 +39,9 @@ export class HomeLayout extends LitElement {
     @consume({context: notificationContext})
     public NotificationController!: NotificationController;
 
+    @consume({context: authContext})
+    public AuthService!: AuthService;
+
     constructor() {
         super();
     }
@@ -50,7 +54,7 @@ export class HomeLayout extends LitElement {
                     Home
                 </md-title>
                 <gl-surface>
-                    <md-button .type=${Styles.Primary} .callback=${() => new LogOut(this.PopupController).start()}>
+                    <md-button .type=${Styles.Primary} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
                         Show Popup
                     </md-button>
                     <md-button .type=${Styles.Red} .callback=${() => this.NotificationController.notify({description: 'Hhello world!', style: "default"})}>
