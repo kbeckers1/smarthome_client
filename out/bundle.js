@@ -1524,16 +1524,15 @@
   // src/services/RouterService.ts
   var Routes = {
     0: {vanityName: "Home", iconPath: "/public/home.svg", pageSelector: "ly-home", show: true},
-    1: {vanityName: "Plattegrond", iconPath: "/public/layout.svg", pageSelector: "ly-layout", show: true},
-    2: {vanityName: "Apparaten", iconPath: "/public/devices.svg", pageSelector: "ly-devices", show: true},
-    3: {vanityName: "Sensoren", iconPath: "/public/sensors.svg", pageSelector: "ly-sensors", show: true},
-    4: {vanityName: "Weersvoorspelling", iconPath: "/public/weather.svg", pageSelector: "ly-predictions", show: true},
-    5: {vanityName: "Account", iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
-    6: {vanityName: "Auth", iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false}
+    1: {vanityName: "Apparaten", iconPath: "/public/devices.svg", pageSelector: "ly-devices", show: true},
+    2: {vanityName: "Sensoren", iconPath: "/public/sensors.svg", pageSelector: "ly-sensors", show: true},
+    3: {vanityName: "Weersvoorspelling", iconPath: "/public/weather.svg", pageSelector: "ly-predictions", show: true},
+    4: {vanityName: "Account", iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
+    5: {vanityName: "Auth", iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false}
   };
   var _Router = class {
     constructor() {
-      __publicField(this, "state", r9(6));
+      __publicField(this, "state", r9(0));
     }
     route(route) {
       this.state.set(route);
@@ -1798,7 +1797,6 @@
             height: 300px;
             border-radius: 15px;
             background-color: #ffffff;
-            padding: 15px;
             min-width: 0;
             min-height: 0;
             flex-shrink: 1;
@@ -1811,8 +1809,8 @@
       super();
       __publicField(this, "width");
       __publicField(this, "height");
-      __publicField(this, "text");
-      this.text = "Continue";
+      __publicField(this, "padding");
+      this.padding = "15px";
       this.width = "fit-content";
       this.height = "auto";
     }
@@ -1823,6 +1821,7 @@
                 :host {
                     width: ${this.width};
                     height: ${this.height};
+                    padding: ${this.padding};
                 }
             </style>
             <slot></slot>
@@ -1836,14 +1835,80 @@
     n4({type: String})
   ], Surface.prototype, "height", 2);
   __decorate([
-    n4()
-  ], Surface.prototype, "text", 2);
+    n4({type: String})
+  ], Surface.prototype, "padding", 2);
   Surface = __decorate([
     t3("gl-surface")
   ], Surface);
 
-  // src/components/forms/Button.ts
+  // src/components/general/DataTile.ts
   var base_style5 = x`
+    <style>
+        :root { 
+
+        }
+        :host {
+            display: flex;
+            width: 500px;
+            height: 300px;
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 0;
+            min-height: 0;
+            flex-shrink: 1;
+            overflow: auto;
+            color: white;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>    
+`;
+  var DataTile = class extends i4 {
+    constructor() {
+      super();
+      __publicField(this, "width");
+      __publicField(this, "height");
+      __publicField(this, "color");
+      __publicField(this, "border_color");
+      this.width = "fit-content";
+      this.height = "auto";
+      this.color = "#ffffff";
+      this.border_color = "#ffffff";
+    }
+    render() {
+      return x`
+            ${base_style5}
+            <style>
+                :host {
+                    width: ${this.width};
+                    height: ${this.height};
+                    color: ${this.color};
+                    border: solid 2px ${this.color};
+                }
+            </style>
+            <slot></slot>
+        `;
+    }
+  };
+  __decorate([
+    n4({type: String})
+  ], DataTile.prototype, "width", 2);
+  __decorate([
+    n4({type: String})
+  ], DataTile.prototype, "height", 2);
+  __decorate([
+    n4({type: String})
+  ], DataTile.prototype, "color", 2);
+  __decorate([
+    n4({type: String})
+  ], DataTile.prototype, "border_color", 2);
+  DataTile = __decorate([
+    t3("gl-data-tile")
+  ], DataTile);
+
+  // src/components/forms/Button.ts
+  var base_style6 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -1979,7 +2044,7 @@
         icon = x`<img src=${this.icon} style="margin-right: 5px; color: white;" height="17px;" />`;
       }
       return x`
-            ${base_style5}
+            ${base_style6}
             ${this.type}
             <button class="inner" @click=${(e10) => this._handleClick(e10)} ?disabled=${this.disabled} >
                 ${icon}
@@ -2222,7 +2287,7 @@
   var $2 = n9(w);
 
   // src/components/general/Notification.ts
-  var base_style6 = u5`
+  var base_style7 = u5`
     <style>
         .filter-black {
             filter: brightness(0%);
@@ -2278,7 +2343,7 @@
     }
     render() {
       return u5`
-            ${base_style6}
+            ${base_style7}
             ${n8(this.shape.style === "red", () => u5`
                     ${red2}
                 `)}
@@ -2333,7 +2398,7 @@
   ], PopupSurface2);
 
   // src/components/forms/TextField.ts
-  var base_style7 = x`
+  var base_style8 = x`
     <style>
         :root { 
 
@@ -2365,7 +2430,7 @@
     render() {
       const type = this.password === true ? "password" : "text";
       return x`
-            ${base_style7}
+            ${base_style8}
             <input type="${type}" @input=${(e10) => this.callback(e10)}></input>
             <slot></slot>
         `;
@@ -2493,13 +2558,13 @@
   };
 
   // src/components/advanced/Graph.ts
-  var base_style8 = x`
+  var base_style9 = x`
     <style>
         :root { 
 
         }
         :host {
-            height: 100%;
+            height: calc(100% - 30px);
             width: 100%;
         }
     </style>    
@@ -2530,7 +2595,7 @@
     }
     render() {
       return x`
-            ${base_style8}
+            ${base_style9}
             <canvas 
                 height="${this.height}"
                 width="${this.width}"
@@ -2552,29 +2617,131 @@
     t3("adv-graph")
   ], Graph);
 
+  // src/components/advanced/cell_renderers/Boolean.ts
+  function cell_bool(value) {
+    return u5`
+        <md-button>Revoke</md-button>
+    `;
+  }
+
   // src/components/advanced/Table.ts
-  var base_style9 = x`
+  var RenderNames;
+  (function(RenderNames2) {
+    RenderNames2[RenderNames2["number"] = 0] = "number";
+    RenderNames2[RenderNames2["boolean"] = 1] = "boolean";
+    RenderNames2[RenderNames2["string"] = 2] = "string";
+  })(RenderNames || (RenderNames = {}));
+  var Renderers = {
+    [2]: {
+      render: (value) => {
+        return x`${value}`;
+      }
+    },
+    [0]: {
+      render: (value) => {
+        return x`${value}`;
+      }
+    },
+    [1]: {
+      render: cell_bool
+    }
+  };
+  var sheet = {
+    headers: {
+      firstName: {
+        label: "First name",
+        renderer: 2
+      },
+      lastName: {
+        label: "Last name",
+        renderer: 2
+      },
+      age: {
+        label: "Age",
+        renderer: 0
+      },
+      active: {
+        label: "Active",
+        renderer: 1
+      }
+    },
+    values: [
+      {
+        firstName: "John",
+        lastName: "Doe",
+        age: 32,
+        active: true
+      },
+      {
+        firstName: "Mary",
+        lastName: "Jane",
+        age: 28,
+        active: false
+      }
+    ]
+  };
+  var base_style10 = x`
     <style>
         :root { 
 
         }
         :host {
-
+            width: 100%;
+            height: calc(100% - 5px);
+            margin-top: 5px;
+            padding-left: 10px;
+            padding-right: 10px;
         }
-        
+        table {
+            overflow: hidden;
+            width: 100%;
+            border-collapse: collapse; /* ensures borders are not doubled */
+            border-style: hidden;
+            border-bottom: 1px solid #f3f3f3;
+        }
+
+        th, td {
+            border-bottom: 1px solid #f3f3f3;   /* add visible borders */
+            padding: 4px;              /* optional: makes cells readable */
+            text-align: left;
+            height: 30px;
+            vertical-align: middle;
+            font-family: "Funnel Display", Helvetica;
+            font-size: 14px;
+        }
+
+        th:first-child, td:first-child {
+            padding-left: 10px;
+        }
     </style>    
 `;
   var Table = class extends i4 {
     constructor() {
       super();
       __publicField(this, "text");
+      __publicField(this, "table");
       this.text = "Continue";
+      this.table = sheet;
     }
     render() {
       return x`
-            ${base_style9}
+            ${base_style10}
             <table>
-
+                ${c5(Object.entries(this.table.headers), (instance) => x`
+                        <th>
+                            ${instance[1].label}
+                        </th>
+                    `)}
+                ${c5(this.table.values, (instance) => x`
+                        <tr>
+                        ${c5(Object.entries(instance), (key) => {
+        const renderer_type = this.table.headers[key[0]].renderer;
+        const renderer = Renderers[renderer_type];
+        console.log("render");
+        return x`<td>${renderer.render(key[1])}</td>`;
+      })}
+                        </tr>
+                    `)}
             </table>
         `;
     }
@@ -2582,6 +2749,9 @@
   __decorate([
     n4()
   ], Table.prototype, "text", 2);
+  __decorate([
+    n4({attribute: false})
+  ], Table.prototype, "table", 2);
   Table = __decorate([
     t3("adv-table")
   ], Table);
@@ -3356,7 +3526,7 @@
   var authContext = n10("authController");
 
   // src/pages/Dashboard.ts
-  var base_style10 = u5`
+  var base_style11 = u5`
     <style>
         :root { 
             --border-width: 5px;
@@ -3395,7 +3565,7 @@
       const route = Routes[Router.state.get()];
       const tag = String(route.pageSelector);
       return u5`
-            ${base_style10}
+            ${base_style11}
             <split-layout orientation="horizontal" start-size="220px">
                 ${n8(route.show === true, () => u5`
                         <div slot="start">
@@ -3403,7 +3573,7 @@
                         </div>
                     `)}
                 <div slot="middle">
-                    <div style="padding: 15px; display: block; flex: 1; min-width: 0; min-height: 0; overflow: hidden; ">
+                    <div style="padding: 15px; display: block; height: calc(100% - 30px);">
                         <${s7(tag)}>
                         </${s7(tag)}>
                     </div>
@@ -3422,7 +3592,7 @@
   ], Dashboard);
 
   // src/pages/views/Sidebar.ts
-  var base_style11 = x`
+  var base_style12 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3507,10 +3677,10 @@
       account.entry = Number(5);
       account.type = account_style;
       return x`
-            ${base_style11}
+            ${base_style12}
             <div class="inner">
                 <split-layout orientation="vertical" start-size="50px" end-size="50px">
-                    <div slot="start" class="top">SmartHome</div>
+                    <div slot="start" class="top">SlimHuis</div>
                     ${container}
                     <div slot="end">
                         <div style="vertical-align: bottom; height: 100%; display: flex; flex-direction: column-reverse;">
@@ -3525,6 +3695,84 @@
   Sidebar = __decorate([
     t3("side-bar")
   ], Sidebar);
+
+  // src/pages/views/full_frame/Home.ts
+  var base_style13 = x`
+    <style>
+        :root { 
+            --border-width: 5px;
+        }
+        .inner {
+            padding: 10px;
+            padding-top: 0px;
+            height: 100%;
+            width: 100%;
+            overflow: auto;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
+        }
+        .container > * + * {
+            border-top: solid 1px #a2a2a2;
+        }  
+    </style>    
+`;
+  var HomeLayout = class extends i4 {
+    constructor() {
+      super();
+      __publicField(this, "PopupController");
+      __publicField(this, "NotificationController");
+      __publicField(this, "AuthService");
+    }
+    render() {
+      return x`
+            ${base_style13}
+            <div class="inner">
+                <md-title>
+                    Home
+                </md-title>
+                <gl-surface style="gap: 15px" width="calc(100% - 50px)">
+                    <gl-data-tile height="200px" color="#e1b400" style="flex: 1 1 auto;">
+                        <md-richtext>Buitentemperatuur</md-richtext>
+                        <md-title>17 °C</md-title>
+                        <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
+                        <md-richtext>Luchtvochtigheid</md-richtext>
+                        <md-title>67%</md-title>
+                        <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
+                        <md-richtext>Netwerk</md-richtext>
+                        <md-title>Online</md-title>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
+                        <md-richtext>Energieverbruik</md-richtext>
+                        <md-title>2.5 kW</md-title>
+                        <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                    </gl-data-tile>
+                </gl-surface>
+                <gl-surface height="300px;" width="600px;" padding="0px">
+                    <adv-table>
+                    </adv-table>
+                </gl-surface>
+                <br/>
+            </div>
+        `;
+    }
+  };
+  __decorate([
+    c7({context: popupContext})
+  ], HomeLayout.prototype, "PopupController", 2);
+  __decorate([
+    c7({context: notificationContext})
+  ], HomeLayout.prototype, "NotificationController", 2);
+  __decorate([
+    c7({context: authContext})
+  ], HomeLayout.prototype, "AuthService", 2);
+  HomeLayout = __decorate([
+    t3("ly-home")
+  ], HomeLayout);
 
   // src/services/micro/BaseFlow.ts
   var BaseFlow = class {
@@ -3581,8 +3829,36 @@
     }
   };
 
-  // src/pages/views/full_frame/Home.ts
-  var base_style12 = x`
+  // src/pages/views/full_frame/Account.ts
+  var sheet2 = {
+    headers: {
+      gebruiker: {
+        label: "Gebruikersnaam",
+        renderer: RenderNames.string
+      },
+      verlooptOp: {
+        label: "Verloop",
+        renderer: RenderNames.string
+      },
+      beheer: {
+        label: "Beheer",
+        renderer: RenderNames.boolean
+      }
+    },
+    values: [
+      {
+        gebruiker: "John",
+        verlooptOp: "06/01/26",
+        beheer: true
+      },
+      {
+        gebruiker: "John",
+        verlooptOp: "06/01/26",
+        beheer: true
+      }
+    ]
+  };
+  var base_style14 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3600,9 +3876,9 @@
         .container > * + * {
             border-top: solid 1px #a2a2a2;
         }  
-    </style>    
+    </style>  
 `;
-  var HomeLayout = class extends i4 {
+  var AccountLayout = class extends i4 {
     constructor() {
       super();
       __publicField(this, "PopupController");
@@ -3611,26 +3887,23 @@
     }
     render() {
       return x`
-            ${base_style12}
+            ${base_style14}
             <div class="inner">
                 <md-title>
-                    Home
+                    Account
                 </md-title>
-                <gl-surface>
-                    <md-button .type=${Styles2.Primary} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
-                        Show Popup
-                    </md-button>
-                    <md-button .type=${Styles2.Red} .callback=${() => this.NotificationController.notify({description: "Hhello world!", style: "default"})}>
-                        Show Notification
-                    </md-button>
-                    <md-button .type=${Styles2.Yellow} .callback=${() => {
-        Router.route(6);
-      }}>
-                        To Auth Page
+                <gl-surface style="flex-direction: column;">
+                    <md-richtext>
+                        Log uit
+                    </md-richtext>
+                    <br/>
+                    <md-button .type=${Styles2.Red} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
+                        Log uit
                     </md-button>
                 </gl-surface>
-                <gl-surface height="300px;" width="600px;">
-                    <adv-table>
+                <gl-surface width="700px">
+                    <adv-table .table=${sheet2}>
+
                     </adv-table>
                 </gl-surface>
                 <br/>
@@ -3640,56 +3913,19 @@
   };
   __decorate([
     c7({context: popupContext})
-  ], HomeLayout.prototype, "PopupController", 2);
+  ], AccountLayout.prototype, "PopupController", 2);
   __decorate([
     c7({context: notificationContext})
-  ], HomeLayout.prototype, "NotificationController", 2);
+  ], AccountLayout.prototype, "NotificationController", 2);
   __decorate([
     c7({context: authContext})
-  ], HomeLayout.prototype, "AuthService", 2);
-  HomeLayout = __decorate([
-    t3("ly-home")
-  ], HomeLayout);
-
-  // src/pages/views/full_frame/Account.ts
-  var base_style13 = x`
-    <style>
-        :root { 
-            --border-width: 5px;
-        }
-        .inner {
-            display: flex;
-            padding: 10px;
-            padding-top: 0px;
-            height: 100%;
-            width: 100%;
-            min-width: 0;
-            box-sizing: border-box;
-            overflow: auto;
-        }
-    </style>    
-`;
-  var AccountLayout = class extends i4 {
-    constructor() {
-      super();
-    }
-    render() {
-      return x`
-            ${base_style13}
-            <div class="inner">
-                <md-title>
-                    Account
-                </md-title>
-            </div>
-        `;
-    }
-  };
+  ], AccountLayout.prototype, "AuthService", 2);
   AccountLayout = __decorate([
     t3("ly-account")
   ], AccountLayout);
 
   // src/pages/views/full_frame/Devices.ts
-  var base_style14 = x`
+  var base_style15 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3712,7 +3948,7 @@
     }
     render() {
       return x`
-            ${base_style14}
+            ${base_style15}
             <div class="inner">
                 <md-title>
                     Apparaten
@@ -3726,7 +3962,7 @@
   ], DeviceLayout);
 
   // src/pages/views/full_frame/Layout.ts
-  var base_style15 = x`
+  var base_style16 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3749,7 +3985,7 @@
     }
     render() {
       return x`
-            ${base_style15}
+            ${base_style16}
             <div class="inner">
                 <md-title>
                     Plattegrond
@@ -3763,7 +3999,7 @@
   ], LayoutLayout);
 
   // src/pages/views/full_frame/Predictions.ts
-  var base_style16 = x`
+  var base_style17 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3772,11 +4008,39 @@
             padding: 10px;
             padding-top: 0px;
             height: 100%;
-            width: 100%;
+            width: calc(100% - 15px);
             overflow: auto;
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
             gap: 10px; /* Space between all children */
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .graph_box {
+            grid-column-start: 1;
+            grid-column-end: 4;
+            grid-row-start: 1;
+            grid-row-end: 7;
+        }
+        .detail_box {
+            grid-column-start: 4;
+            grid-column-end: 4;
+            grid-row-start: 1;
+            grid-row-end: 9;
+            display: flex;
+            flex-direction: column;
+        }
+        .controller_box {
+            grid-column-start: 1;
+            grid-column-end: 4;
+            grid-row-start: 7;
+            grid-row-end: 8;
         }
     </style>    
 `;
@@ -3786,16 +4050,42 @@
     }
     render() {
       return x`
-            ${base_style16}
+            ${base_style17}
             <div class="inner">
                 <md-title>
                     Weersvoorspellingen
                 </md-title>
-                <gl-surface width="400px;" height="300px;">
-                    <adv-graph>
+                <div class="grid">
+                    <gl-surface class="graph_box" width="auto" height="auto">
+                        <adv-graph>
 
-                    </adv-graph>
-                </gl-surface>
+                        </adv-graph>
+                    </gl-surface>
+                    <gl-surface style="gap: 15px;" class="detail_box" width="auto" height="auto">
+                        <gl-data-tile color="#e1b400" style="flex: 1 1 auto;" width="auto">
+                            <md-richtext>Buitentemperatuur</md-richtext>
+                            <md-title>17 °C</md-title>
+                            <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile color="#005ec3" style="flex: 1 1 auto;" width="auto">
+                            <md-richtext>Luchtvochtigheid</md-richtext>
+                            <md-title>67%</md-title>
+                            <md-richtext style="color: #005ec3!important; text-size: 10px;" width="auto">huidig</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile color="#3f9062" style="flex: 1 1 auto;" width="auto">
+                            <md-richtext>Netwerk</md-richtext>
+                            <md-title>Online</md-title>
+                        </gl-data-tile>
+                        <gl-data-tile color="#c30000" style="flex: 1 1 auto;" width="auto">
+                            <md-richtext>Energieverbruik</md-richtext>
+                            <md-title>2.5 kW</md-title>
+                            <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                        </gl-data-tile>
+                    </gl-surface>
+                    <gl-surface width="auto" height="auto" class="controller_box">
+
+                    </gl-surface>
+                </div>
             </div>
         `;
     }
@@ -3805,7 +4095,7 @@
   ], PredictionLayout);
 
   // src/pages/views/full_frame/Sensors.ts
-  var base_style17 = x`
+  var base_style18 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3828,7 +4118,7 @@
     }
     render() {
       return x`
-            ${base_style17}
+            ${base_style18}
             <div class="inner">
                 <md-title>
                     Sensoren
@@ -3874,7 +4164,7 @@
   });
 
   // src/pages/views/full_frame/Auth.ts
-  var base_style18 = x`
+  var base_style19 = x`
     <style>
         :root { 
             --border-width: 5px;
@@ -3923,7 +4213,7 @@
       this.shape = {
         width: "700px",
         title: {
-          content: "SmartHome Login",
+          content: "SlimHuis Login",
           icon: ""
         },
         button_bar: [
@@ -4009,7 +4299,7 @@
         `;
       this.computedShape = {...this.shape, body: bodyContent};
       return x`
-            ${base_style18}
+            ${base_style19}
             <div class="inner">
                 <div class="wrapper">
                     <gl-popup-surface .counter="${this.counter}" .shape=${l7(this.computedShape)}></gl-popup-surface>    

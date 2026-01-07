@@ -70,7 +70,7 @@ export class Dashboard extends LitElement {
                     `
                 )}
                 <div slot="middle">
-                    <div style="padding: 15px; display: block; flex: 1; min-width: 0; min-height: 0; overflow: hidden; ">
+                    <div style="padding: 15px; display: block; height: calc(100% - 30px);">
                         <${unsafeStatic(tag)}>
                         </${unsafeStatic(tag)}>
                     </div>

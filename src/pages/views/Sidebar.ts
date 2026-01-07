@@ -110,7 +110,7 @@ export class Sidebar extends LitElement {
             ${base_style}
             <div class="inner">
                 <split-layout orientation="vertical" start-size="50px" end-size="50px">
-                    <div slot="start" class="top">SmartHome</div>
+                    <div slot="start" class="top">SlimHuis</div>
                     ${container}
                     <div slot="end">
                         <div style="vertical-align: bottom; height: 100%; display: flex; flex-direction: column-reverse;">

@@ -4,6 +4,7 @@ import './components/sidebar/MenuEntry';
 import './components/forms/Title';
 import './components/forms/RichText'
 import './components/general/Surface'
+import './components/general/DataTile'
 import './components/forms/Button'
 import './components/general/Popup'
 import './components/general/Notification'

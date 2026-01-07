@@ -53,18 +53,28 @@ export class HomeLayout extends LitElement {
                 <md-title>
                     Home
                 </md-title>
-                <gl-surface>
-                    <md-button .type=${Styles.Primary} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
-                        Show Popup
-                    </md-button>
-                    <md-button .type=${Styles.Red} .callback=${() => this.NotificationController.notify({description: 'Hhello world!', style: "default"})}>
-                        Show Notification
-                    </md-button>
-                    <md-button .type=${Styles.Yellow} .callback=${() => {Router.route(6)}}>
-                        To Auth Page
-                    </md-button>
+                <gl-surface style="gap: 15px" width="calc(100% - 50px)">
+                    <gl-data-tile height="200px" color="#e1b400" style="flex: 1 1 auto;">
+                        <md-richtext>Buitentemperatuur</md-richtext>
+                        <md-title>17 °C</md-title>
+                        <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
+                        <md-richtext>Luchtvochtigheid</md-richtext>
+                        <md-title>67%</md-title>
+                        <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
+                        <md-richtext>Netwerk</md-richtext>
+                        <md-title>Online</md-title>
+                    </gl-data-tile>
+                    <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
+                        <md-richtext>Energieverbruik</md-richtext>
+                        <md-title>2.5 kW</md-title>
+                        <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                    </gl-data-tile>
                 </gl-surface>
-                <gl-surface height="300px;" width="600px;">
+                <gl-surface height="300px;" width="600px;" padding="0px">
                     <adv-table>
                     </adv-table>
                 </gl-surface>

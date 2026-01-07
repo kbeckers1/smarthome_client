@@ -8,7 +8,7 @@ const base_style = html`
 
         }
         :host {
-            height: 100%;
+            height: calc(100% - 30px);
             width: 100%;
         }
     </style>    

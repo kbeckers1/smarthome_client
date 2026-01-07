@@ -72,7 +72,7 @@ export class AuthLayout extends LitElement {
         this.shape = {
             width: '700px',
             title: {
-                content: 'SmartHome Login',
+                content: 'SlimHuis Login',
                 icon: ''
             },
             button_bar: [
