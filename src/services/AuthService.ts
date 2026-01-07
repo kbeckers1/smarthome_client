@@ -63,14 +63,14 @@ export class AuthService {
                 style: 'default',
                 description: 'Logged out'
         })
-        Router.route(6)
+        Router.route(5)
 
         // deregistering of our token happens lazily
         const res = this.api.request({
             Url: "http://localhost:5000/api/logout",
             Catch: false,
             Type: "POST",
-            Authorization: false,
+            Authorization: true,
             Params: new URLSearchParams({
                 token: temp_token
             })

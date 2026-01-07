@@ -2576,10 +2576,26 @@
       __publicField(this, "width");
       __publicField(this, "height");
       __publicField(this, "graphController", new GraphController(this));
+      __publicField(this, "resizeObserver");
+      __publicField(this, "resizeTimeout");
       this.width = "100px";
       this.height = "100px";
     }
     firstUpdated(_changedProperties) {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.resizeTimeout) {
+          clearTimeout(this.resizeTimeout);
+        }
+        this.resizeTimeout = window.setTimeout(() => {
+          this.updateCanvasSize();
+          this.graphController.start();
+        }, 200);
+      });
+      this.updateCanvasSize();
+      this.graphController.start();
+      this.resizeObserver.observe(this);
+    }
+    updateCanvasSize() {
       const style = getComputedStyle(this);
       this.width = style.width;
       this.height = style.height;
@@ -2591,7 +2607,10 @@
       this.canvas.width = parseInt(this.width) * dpr;
       const ctx = this.canvas.getContext("2d");
       ctx.scale(dpr, dpr);
-      this.graphController.start();
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.resizeObserver?.disconnect();
     }
     render() {
       return x`
@@ -2619,9 +2638,52 @@
 
   // src/components/advanced/cell_renderers/Boolean.ts
   function cell_bool(value) {
-    return u5`
-        <md-button>Revoke</md-button>
-    `;
+    return x`
+        <style>
+            .base {
+                height: 100%;
+                width: 100%;
+                align-content: center;
+                justify-content: center;
+                text-align: center;
+                border-radius: 10px;
+                color: white;
+            }
+            .true {
+                background-color: #007604;
+            }
+            .false {
+                background-color: #c30000;
+            }
+        </style>
+        <div class="base ${value}">
+            <span>${value}</span>
+        </div>
+      `;
+  }
+
+  // src/components/advanced/cell_renderers/Button.ts
+  function cell_button(value) {
+    return x`
+        <style>
+            .base {
+                height: 100%;
+                width: 100%;
+                align-content: center;
+                justify-content: center;
+                text-align: center;
+                border-radius: 10px;
+                color: white;
+            }
+            .true {
+                background-color: #007604;
+            }
+            .false {
+                background-color: #c30000;
+            }
+        </style>
+        <md-button icon=${value.icon}  .type=${Styles2[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
+      `;
   }
 
   // src/components/advanced/Table.ts
@@ -2630,6 +2692,7 @@
     RenderNames2[RenderNames2["number"] = 0] = "number";
     RenderNames2[RenderNames2["boolean"] = 1] = "boolean";
     RenderNames2[RenderNames2["string"] = 2] = "string";
+    RenderNames2[RenderNames2["button"] = 3] = "button";
   })(RenderNames || (RenderNames = {}));
   var Renderers = {
     [2]: {
@@ -2644,6 +2707,9 @@
     },
     [1]: {
       render: cell_bool
+    },
+    [3]: {
+      render: cell_button
     }
   };
   var sheet = {
@@ -2686,7 +2752,7 @@
 
         }
         :host {
-            width: 100%;
+            width: calc(100% - 20px);
             height: calc(100% - 5px);
             margin-top: 5px;
             padding-left: 10px;
@@ -3382,6 +3448,8 @@
     }
     async request(req) {
       try {
+        console.log(this.host.authService.value.token);
+        req.Params?.append("Authorization", this.host.authService.value.token);
         const url = req.Params ? `${req.Url}?${req.Params.toString()}` : req.Url;
         const headers = {};
         if (req.Headers) {
@@ -3437,30 +3505,27 @@
             style: "red",
             description: "Session expired; please reauthenticate."
           });
-          Router.route(6);
           break;
         case 403:
           this.host.notificationController.value.notify({
             style: "red",
             description: "You are not allowed to access this resource."
           });
-          Router.route(6);
           break;
         case 500:
           this.host.notificationController.value.notify({
             style: "red",
             description: "Internal Server Error"
           });
-          Router.route(6);
           break;
         default:
           this.host.notificationController.value.notify({
             style: "red",
             description: `${response.status} Server Error`
           });
-          Router.route(6);
           break;
       }
+      this.host.authService.value.deauthenticate();
     }
   };
   var apiContext = n10("apiService");
@@ -3511,12 +3576,12 @@
         style: "default",
         description: "Logged out"
       });
-      Router.route(6);
+      Router.route(5);
       const res = this.api.request({
         Url: "http://localhost:5000/api/logout",
         Catch: false,
         Type: "POST",
-        Authorization: false,
+        Authorization: true,
         Params: new URLSearchParams({
           token: temp_token
         })
@@ -3664,7 +3729,7 @@
         return el;
       });
       let account_style = Styles.UNSELECTED;
-      if (selected2 == 5) {
+      if (selected2 == 4) {
         account_style = Styles.SELECTED;
       } else {
         if (selected2 in entries) {
@@ -3672,9 +3737,9 @@
         }
       }
       const account = document.createElement("menu-entry");
-      account.title = Routes[5].vanityName;
-      account.icon = Routes[5].iconPath;
-      account.entry = Number(5);
+      account.title = Routes[4].vanityName;
+      account.icon = Routes[4].iconPath;
+      account.entry = Number(4);
       account.type = account_style;
       return x`
             ${base_style12}
@@ -3697,6 +3762,46 @@
   ], Sidebar);
 
   // src/pages/views/full_frame/Home.ts
+  var sheet2 = {
+    headers: {
+      naam: {
+        label: "Apparaat",
+        renderer: RenderNames.string
+      },
+      kamer: {
+        label: "Kamer",
+        renderer: RenderNames.string
+      },
+      energieverbruik: {
+        label: "Energieverbruik",
+        renderer: RenderNames.number
+      },
+      actief: {
+        label: "Actief",
+        renderer: RenderNames.boolean
+      },
+      schakel: {
+        label: "Schakelen",
+        renderer: RenderNames.button
+      }
+    },
+    values: [
+      {
+        naam: "Servo",
+        kamer: "Woonkamer",
+        energieverbruik: "0.1 W",
+        actief: true,
+        schakel: {
+          disabled: true,
+          type: "Primary",
+          title: "Beheerd",
+          icon: "",
+          callback: () => {
+          }
+        }
+      }
+    ]
+  };
   var base_style13 = x`
     <style>
         :root { 
@@ -3706,15 +3811,47 @@
             padding: 10px;
             padding-top: 0px;
             height: 100%;
-            width: 100%;
+            width: calc(100% - 15px);
             overflow: auto;
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
             gap: 10px; /* Space between all children */
         }
+        .content {
+            flex: 1 1 auto; /* take remaining space */
+            overflow: auto; /* scroll if needed */
+        }
         .container > * + * {
             border-top: solid 1px #a2a2a2;
-        }  
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .graph_box {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 4;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
+        .detail_box {
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 4;
+        }
+        .table_box {
+            grid-column-start: 1;
+            grid-column-end: 2;
+            grid-row-start: 4;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
     </style>    
 `;
   var HomeLayout = class extends i4 {
@@ -3731,31 +3868,33 @@
                 <md-title>
                     Home
                 </md-title>
-                <gl-surface style="gap: 15px" width="calc(100% - 50px)">
-                    <gl-data-tile height="200px" color="#e1b400" style="flex: 1 1 auto;">
-                        <md-richtext>Buitentemperatuur</md-richtext>
-                        <md-title>17 °C</md-title>
-                        <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
-                    </gl-data-tile>
-                    <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
-                        <md-richtext>Luchtvochtigheid</md-richtext>
-                        <md-title>67%</md-title>
-                        <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
-                    </gl-data-tile>
-                    <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
-                        <md-richtext>Netwerk</md-richtext>
-                        <md-title>Online</md-title>
-                    </gl-data-tile>
-                    <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
-                        <md-richtext>Energieverbruik</md-richtext>
-                        <md-title>2.5 kW</md-title>
-                        <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
-                    </gl-data-tile>
-                </gl-surface>
-                <gl-surface height="300px;" width="600px;" padding="0px">
-                    <adv-table>
-                    </adv-table>
-                </gl-surface>
+                <div class="grid">
+                    <gl-surface style="gap: 15px; overflow: hidden;" class="detail_box" width="auto" height="auto">
+                        <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
+                            <md-richtext>Luchtvochtigheid</md-richtext>
+                            <md-title>67%</md-title>
+                            <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
+                            <md-richtext>Binnentemperatuur</md-richtext>
+                            <md-title>21 °C</md-title>
+                            <md-richtext style="color: #3f9062!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
+                            <md-richtext>Energieverbruik</md-richtext>
+                            <md-title>2.5 kW</md-title>
+                            <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                        </gl-data-tile>
+                    </gl-surface>
+                    <gl-surface class="table_box" width="auto" height="auto">
+                        <adv-table .table=${sheet2}>
+                        </adv-table>
+                    </gl-surface>
+                    <gl-surface class="graph_box" width="auto" height="auto">
+                        <adv-graph>
+                        </adv-graph>
+                    </gl-surface>
+                </div>
                 <br/>
             </div>
         `;
@@ -3830,7 +3969,7 @@
   };
 
   // src/pages/views/full_frame/Account.ts
-  var sheet2 = {
+  var sheet3 = {
     headers: {
       gebruiker: {
         label: "Gebruikersnaam",
@@ -3842,19 +3981,33 @@
       },
       beheer: {
         label: "Beheer",
-        renderer: RenderNames.boolean
+        renderer: RenderNames.button
       }
     },
     values: [
       {
         gebruiker: "John",
         verlooptOp: "06/01/26",
-        beheer: true
+        beheer: {
+          callback: () => {
+          },
+          type: "Red",
+          disabled: false,
+          icon: "",
+          title: "Revoke"
+        }
       },
       {
         gebruiker: "John",
         verlooptOp: "06/01/26",
-        beheer: true
+        beheer: {
+          callback: () => {
+          },
+          type: "Red",
+          disabled: false,
+          icon: "",
+          title: "Revoke"
+        }
       }
     ]
   };
@@ -3902,7 +4055,7 @@
                     </md-button>
                 </gl-surface>
                 <gl-surface width="700px">
-                    <adv-table .table=${sheet2}>
+                    <adv-table .table=${sheet3}>
 
                     </adv-table>
                 </gl-surface>

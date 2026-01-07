@@ -21,6 +21,8 @@ export class Graph extends LitElement {
     @property({attribute: false}) width: string
     @property({attribute: false}) height: string
     private graphController: GraphController = new GraphController(this)
+    private resizeObserver?: ResizeObserver
+    private resizeTimeout?: number;
 
     constructor() {
         super();
@@ -29,6 +31,25 @@ export class Graph extends LitElement {
     }
 
     firstUpdated(_changedProperties: PropertyValues): void {
+        this.resizeObserver = new ResizeObserver(() => {
+            // Clear previous timeout
+            if (this.resizeTimeout) {
+                clearTimeout(this.resizeTimeout);
+            }
+            
+            // Wait 150ms after resize stops before updating
+            this.resizeTimeout = window.setTimeout(() => {
+                this.updateCanvasSize();
+                this.graphController.start()
+            }, 200);
+        });
+
+        this.updateCanvasSize()
+        this.graphController.start()
+        this.resizeObserver.observe(this);
+    }
+
+    private updateCanvasSize(): void {
         // we iniate the canvas
         const style = getComputedStyle(this);
         this.width = style.width;
@@ -46,9 +67,13 @@ export class Graph extends LitElement {
 
         const ctx = this.canvas.getContext('2d')!;
         ctx.scale(dpr, dpr);
-        
-        this.graphController.start()
     }
+
+    disconnectedCallback(): void {
+        super.disconnectedCallback();
+        this.resizeObserver?.disconnect();
+    }
+    
 
     render() {
         return html`

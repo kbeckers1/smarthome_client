@@ -22,19 +22,31 @@ const sheet: Sheet<'gebruiker' | 'verlooptOp' | 'beheer'> = {
         },
         beheer: {
             label: 'Beheer',
-            renderer: RenderNames.boolean
+            renderer: RenderNames.button
         }
     },
     values: [
         {
             gebruiker: 'John',
             verlooptOp: '06/01/26',
-            beheer: true
+            beheer: {
+                callback: () => {},
+                type: 'Red',
+                disabled: false,
+                icon: "",
+                title: "Revoke"
+            }
         },
         {
             gebruiker: 'John',
             verlooptOp: '06/01/26',
-            beheer: true
+            beheer: {
+                callback: () => {},
+                type: 'Red',
+                disabled: false,
+                icon: "",
+                title: "Revoke"
+            }
         },
     ]
 };

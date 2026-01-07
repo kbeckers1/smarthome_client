@@ -2,6 +2,8 @@ import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { cell_bool } from './cell_renderers/Boolean';
+import { Button } from '../general/Popup';
+import { cell_button } from './cell_renderers/Button';
 
 // source: https://www.reddit.com/r/typescript/comments/12xdwds/enforce_field_to_have_same_keys_as_another_field/
 export type RendererFn<T> = (value: T, options?: any) => TemplateResult;
@@ -14,12 +16,14 @@ export interface Renderer<T, O = {}> {
 export enum RenderNames {
     number,
     boolean,
-    string
+    string,
+    button
 }
 export interface RendererValueMap {
     [RenderNames.string]: string;
     [RenderNames.number]: number;
     [RenderNames.boolean]: boolean;
+    [RenderNames.button]: Button;
 }
 export const Renderers: {
     [K in RenderNames]: Renderer<RendererValueMap[K]>
@@ -36,6 +40,9 @@ export const Renderers: {
     },
     [RenderNames.boolean]: {
         render: cell_bool
+    },
+    [RenderNames.button]: {
+        render: cell_button
     }
 };
 
@@ -99,7 +106,7 @@ const base_style = html`
 
         }
         :host {
-            width: 100%;
+            width: calc(100% - 20px);
             height: calc(100% - 5px);
             margin-top: 5px;
             padding-left: 10px;

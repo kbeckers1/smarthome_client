@@ -1,6 +1,8 @@
 import { html, TemplateResult } from 'lit';
+import { Button } from '../../general/Popup';
+import { Styles } from '../../forms/Button';
 
-export function cell_bool(value: boolean): TemplateResult {
+export function cell_button(value: Button): TemplateResult {
     return html`
         <style>
             .base {
@@ -19,8 +21,6 @@ export function cell_bool(value: boolean): TemplateResult {
                 background-color: #c30000;
             }
         </style>
-        <div class="base ${value}">
-            <span>${value}</span>
-        </div>
+        <md-button icon=${value.icon}  .type=${Styles[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
       `;
 }

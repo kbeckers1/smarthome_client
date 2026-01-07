@@ -174,24 +174,19 @@ def omgeving():
 @app.route("/api/apparaten", methods=["GET"])
 @require_token
 def apparaten():
-    apparaat_id = request.args.get("id")
-
     conn = connect_db()
     cur = conn.cursor()
-
-    if apparaat_id:
-        cur.execute("""
-            SELECT apparaat_id, naam, type, status,
-                   huidig_verbruik, installatie, omgeving_id
-            FROM apparaat
-            WHERE apparaat_id = %s
-        """, (apparaat_id,))
-    else:
-        cur.execute("""
-            SELECT apparaat_id, naam, type, status,
-                   huidig_verbruik, installatie, omgeving_id
-            FROM apparaat
-        """)
+    cur.execute("""
+        SELECT
+            a.apparaat_id,
+            a.naam,
+            a.actief,
+            a.status,
+            a.huidig_verbruik,
+            o.naam as woonkamer
+        FROM apparaat a
+        JOIN kamers o ON a.kamer = o.kamer_id
+    """)
 
     data = cur.fetchall()
     cur.close()
@@ -274,12 +269,6 @@ def kamers():
         } for r in data
     ])
 
-# ============================
-# ✅ MELDINGEN (GET + POST)
-# ============================
-@app.route("/api/meldingen", methods=["GET", "POST"])
-@require_token
-def meldingen():
     conn = connect_db()
     cur = conn.cursor()
 

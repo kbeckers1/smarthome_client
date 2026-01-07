@@ -37,6 +37,8 @@ export class APIService implements ReactiveController {
     async request<T = any>(req: Request): Promise<T | number> {
         try {
             // Build URL with query params
+            console.log(this.host.authService.value.token)
+            req.Params?.append('Authorization', this.host.authService.value.token)
             const url = req.Params
                 ? `${req.Url}?${req.Params.toString()}`
                 : req.Url;
@@ -107,31 +109,29 @@ export class APIService implements ReactiveController {
                     style: 'red',
                     description: 'Session expired; please reauthenticate.'
                 });
-                Router.route(6);
                 break;
             case 403: // Forbidden
                 this.host.notificationController.value.notify({
                     style: 'red',
                     description: 'You are not allowed to access this resource.'
                 });
-                Router.route(6);
                 break;
             case 500: // Server error
                 this.host.notificationController.value.notify({
                     style: 'red',
                     description: 'Internal Server Error'
                 });
-                Router.route(6);
                 break;
             default:
                 this.host.notificationController.value.notify({
                     style: 'red',
                     description: `${response.status} Server Error`
                 });
-                Router.route(6);
                 break;
         }
+        this.host.authService.value.deauthenticate()
     }
+
 }
 
 export const apiContext = createContext<APIService>('apiService');

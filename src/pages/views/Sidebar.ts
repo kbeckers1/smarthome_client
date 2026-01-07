@@ -90,7 +90,7 @@ export class Sidebar extends LitElement {
 
         // why did we bolt on a Login button instead of defining clean subcategories? Well, because its too much work in this short timeframe to do so.
         let account_style = Styles.UNSELECTED // this is for our bolt-on login entry
-        if (selected == 5) {
+        if (selected == 4) {
             account_style = Styles.SELECTED
         } else {
             // quickly select the valid one
@@ -101,9 +101,9 @@ export class Sidebar extends LitElement {
 
         // then we bolt on our Account button
         const account = document.createElement("menu-entry");
-        account.title = Routes[5].vanityName;
-        account.icon = Routes[5].iconPath;
-        account.entry = Number(5);
+        account.title = Routes[4].vanityName;
+        account.icon = Routes[4].iconPath;
+        account.entry = Number(4);
         account.type = account_style
 
         return html`
