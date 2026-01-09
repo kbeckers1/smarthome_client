@@ -14,13 +14,7 @@ export function cell_button(value: Button): TemplateResult {
                 border-radius: 10px;
                 color: white;
             }
-            .true {
-                background-color: #007604;
-            }
-            .false {
-                background-color: #c30000;
-            }
         </style>
-        <md-button icon=${value.icon}  .type=${Styles[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
+        <md-button icon=${value.icon} .callback=${value.callback} .type=${Styles[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
       `;
 }

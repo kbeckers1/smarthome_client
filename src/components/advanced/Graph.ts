@@ -1,6 +1,6 @@
 import {html, css, LitElement, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property, query, queryAll, queryAsync} from 'lit/decorators.js';
-import { GraphController } from '../../services/GraphController';
+import { GraphController, GraphData } from '../../services/GraphController';
 
 const base_style = html`
     <style>
@@ -8,7 +8,7 @@ const base_style = html`
 
         }
         :host {
-            height: calc(100% - 30px);
+            height: calc(100% - 10px);
             width: 100%;
         }
     </style>    
@@ -18,8 +18,9 @@ const base_style = html`
 @customElement('adv-graph')
 export class Graph extends LitElement {
     @property({attribute: false}) canvas!: HTMLCanvasElement
-    @property({attribute: false}) width: string
-    @property({attribute: false}) height: string
+    @property({attribute: false}) graph!: GraphData
+    private width: string
+    private height: string
     private graphController: GraphController = new GraphController(this)
     private resizeObserver?: ResizeObserver
     private resizeTimeout?: number;
@@ -40,13 +41,20 @@ export class Graph extends LitElement {
             // Wait 150ms after resize stops before updating
             this.resizeTimeout = window.setTimeout(() => {
                 this.updateCanvasSize();
-                this.graphController.start()
+                this.graphController.render()
             }, 200);
         });
 
         this.updateCanvasSize()
-        this.graphController.start()
+        this.graphController.start(this.graph)
         this.resizeObserver.observe(this);
+    }
+
+    protected updated(_changedProperties: PropertyValues): void {
+        if (_changedProperties.has('graph')) {
+            this.graphController.setGraph(this.graph);
+            this.graphController.render()
+        }
     }
 
     private updateCanvasSize(): void {
@@ -62,11 +70,12 @@ export class Graph extends LitElement {
         const dpr = window.devicePixelRatio || 1;
         this.canvas.style.width = style.width;
         this.canvas.style.height = style.height;
-        this.canvas.height = parseInt(this.height) * dpr
-        this.canvas.width = parseInt(this.width) * dpr
+        this.canvas.height = parseInt(this.height) * dpr;
+        this.canvas.width = parseInt(this.width) * dpr;
 
         const ctx = this.canvas.getContext('2d')!;
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.graphController.start(this.graph);
     }
 
     disconnectedCallback(): void {
@@ -74,13 +83,10 @@ export class Graph extends LitElement {
         this.resizeObserver?.disconnect();
     }
     
-
     render() {
         return html`
             ${base_style}
             <canvas 
-                height="${this.height}"
-                width="${this.width}"
                 id="canvas"
             ></canvas>
         `;

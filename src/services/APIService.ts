@@ -6,6 +6,24 @@ import { when } from "lit/directives/when.js";
 import {createContext} from '@lit/context';
 import { Dashboard } from "../pages/Dashboard";
 import { Router } from "./RouterService";
+import { Store } from "./GlobalState";
+import { Result } from "./AuthService";
+
+// data structures
+export interface Device {
+    naam: string,
+    kamer: string,
+    huidig_verbruik: number,
+    actief: boolean,
+    apparaat_id: number,
+    beheerd: boolean
+}
+export interface Account {
+    gebruiker_id: number,
+    naam: string,
+    email: string,
+    sessies: number
+}
 
 // This class controls our API state, provides API methods, and provides active auth state.
 export interface Request {
@@ -19,9 +37,19 @@ export interface Request {
     Catch: boolean
 }
 
+export interface ApiResponse<T = any> {
+    success: boolean;
+    error_code?: number;
+    message?: string;
+    data?: T;
+}
+
 export class APIService implements ReactiveController {
     host: Dashboard;
     timeout: number;
+
+    devices: Store<Record<number, Device>> = new Store({});
+    accounts: Store<Record<number, Account>> = new Store({});
 
     constructor(host: Dashboard, timeout = 5000) {
         (this.host = host).addController(this);
@@ -31,17 +59,16 @@ export class APIService implements ReactiveController {
     // Binding to our host and our entry point to rendering. We dont really need any preparation work however: so we have empty shells to satisfy the Typescript compiler.
     hostConnected() {}
     hostDisconnected() {}
-
+    
     // Wraps HTTPService, deals with errors and manages auth state.
     // Our T defines our expected data structure.
-    async request<T = any>(req: Request): Promise<T | number> {
+    async request<T = any>(req: Request): Promise<ApiResponse<T>> {
         try {
             // Build URL with query params
             console.log(this.host.authService.value.token)
-            req.Params?.append('Authorization', this.host.authService.value.token)
-            const url = req.Params
-                ? `${req.Url}?${req.Params.toString()}`
-                : req.Url;
+            const params = req.Params ? req.Params : new URLSearchParams()
+            params.append('token', this.host.authService.value.token)
+            const url =  `${req.Url}?${params.toString()}`
 
             // Build headers object from Map if provided
             const headers: Record<string, string> = {};
@@ -72,18 +99,21 @@ export class APIService implements ReactiveController {
 
             // Handle HTTP errors
             if (!response.ok) {
+                const text = await response.text().catch(() => '');
                 if (req.Catch === true) {
                     this.handleHttpError(response);
                 }
-                return response.status;
+                return { success: false, error_code: response.status, message: text };
             }
 
             // Try to parse JSON response
             const contentType = response.headers.get('Content-Type') || '';
             if (contentType.includes('application/json')) {
-                return (await response.json()) as T;
+                const parsed = (await response.json()) as T;
+                return { success: true, data: parsed };
             } else {
-                return (await response.text()) as unknown as T;
+                const txt = (await response.text()) as unknown as T;
+                return { success: true, data: txt };
             }
         } catch (err) {
             if (err instanceof DOMException && err.name === 'AbortError') {
@@ -91,13 +121,13 @@ export class APIService implements ReactiveController {
                     style: 'red',
                     description: 'Request timed out'
                 });
-                return 418; // I'm a teapot
+                return { success: false, error_code: 418, message: "I'm a teapot" };
             }
             this.host.notificationController.value.notify({
                 style: 'red',
                 description: 'Unknown network error'
             });
-            return 100;
+            return { success: false, error_code: 100, message: 'Unknown network error' };
         }
     }
 
@@ -132,6 +162,112 @@ export class APIService implements ReactiveController {
         this.host.authService.value.deauthenticate()
     }
 
+    // Execute the first time population happens.
+    // It wouldve been better if we had a hierarchical state machine. But i'm short on time.
+    async initial_population() {
+        // fetch & commit data for each of our buckets/stores in paralell.
+        await Promise.all([
+            this.fetch_devices(),
+            this.fetch_accounts()
+        ])
+        console.log('Fetched')
+    }
+
+    async fetch_devices() {
+        // fetch devices
+        const res = await this.request<Array<Device & { status?: unknown }>>({
+            Url: "http://localhost:5000/api/devices",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+        })
+        if (!res.success) {
+            this.host.notificationController.value.notify({
+                style: 'red',
+                description: 'Error fetching data'
+            })
+            return Result.Fail
+        }
+        const dataArray = (res.data || []) as Array<Device & { status?: unknown }>;
+        const data: Omit<Device, "status">[] = dataArray.map(({ status, ...rest }) => rest);
+        // convert array to id->device map for the Store
+        const map = Object.fromEntries(data.map((d) => [d.apparaat_id, d] as [number, Omit<Device, "status">])) as Record<number, Omit<Device, "status">>;
+        this.devices.set(map);
+        // set here
+        return Result.Success;
+    }
+
+    async fetch_accounts() {
+        const res = await this.request<Array<Account>>({
+            Url: "http://localhost:5000/api/users",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+        })
+        if (!res.success) {
+            this.host.notificationController.value.notify({
+                style: 'red',
+                description: 'Error fetching data'
+            })
+            return Result.Fail
+        }
+        // normalize response to an array (may be undefined) and convert to id->account map
+        const dataArray = (res.data ?? []) as Array<Account>;
+        const map = Object.fromEntries(
+            dataArray.map((d) => [d.gebruiker_id, d] as [number, Account])
+        ) as Record<number, Account>;
+        this.accounts.set(map);
+        return Result.Success;
+    }
+
+    async revoke_account_access(id: number) {
+        const req: Request = {
+            Authorization: true,
+            Catch: false,
+            Type: "POST",
+            Url: "http://localhost:5000/api/revoke",
+            Params: new URLSearchParams({
+                "user_id": String(id),
+            })
+        }
+        const res = await this.request(req)
+        console.log(res)
+        if (res.success) {
+            // Mutate data store
+            // mutate device store: update single device by id
+            await this.fetch_accounts()
+            return Result.Success
+        } else {
+            return Result.Fail
+        }
+    }
+
+    async toggle_device(id: number, target_state: boolean): Promise<Result> {
+        // First we make an API request
+        // did it succeed?
+        //      -> modify local data store
+        //      -> exit with Result.Success
+        // did it not succeed?
+        //      -> exit with Result.Fail
+
+        // make request
+        const req: Request = {
+            Authorization: true,
+            Catch: false,
+            Type: "POST",
+            Url: "http://localhost:5000/api/devices/toggle",
+            Body: {
+                "apparaat_id": id,
+                "gewenste_status": target_state // invert our is_active
+            }
+        }
+        const res = await this.request(req)
+        if (res.success) {
+            return Result.Success
+        } else {
+            return Result.Fail
+        }
+    }
 }
 
 export const apiContext = createContext<APIService>('apiService');

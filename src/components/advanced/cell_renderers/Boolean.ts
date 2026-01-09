@@ -20,7 +20,7 @@ export function cell_bool(value: boolean): TemplateResult {
             }
         </style>
         <div class="base ${value}">
-            <span>${value}</span>
+            <span>${value === true ? 'Ja' : 'Nee'}</span>
         </div>
       `;
 }

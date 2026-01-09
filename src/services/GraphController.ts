@@ -5,16 +5,20 @@ import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
 import {createContext} from '@lit/context';
 import { Graph } from "../components/advanced/Graph";
+import { drawColumns } from "./graph_renderers/ColumnRenderer";
 
 const MAX_AXIS_LENGTH = 4;
 
-// This class controls our API state, provides API methods, and provides active auth state.
 // Internal Structures
+// Graph Descriptors & Metadata
+export type ZIndex = number
+
 export interface Range {
     start: number,
     end: number,
     step: number
 }
+
 export interface Cuboid {
     x: number,
     y: number,
@@ -22,35 +26,77 @@ export interface Cuboid {
     height: number
 }
 
-// Graph Structures
+// Graph Types
+export enum GraphTypes {
+    LineGraph,
+    WaterfallGraph,
+    ColumnGraph,
+    ScatterGraph
+}
+
+export type GraphTypeMap = {
+    [GraphTypes.LineGraph]: LineGraph
+    [GraphTypes.WaterfallGraph]: WaterfallGraph
+    [GraphTypes.ColumnGraph]: ColumnGraph
+    [GraphTypes.ScatterGraph]: ScatterGraph
+}
+
+export const GraphRenderers: {
+    [K in GraphTypes]: (ctx: CanvasRenderingContext2D, graph: GraphWrapper<K>, graphBox: Cuboid, x_range: Range, y_range: Range) => void
+} = {
+    [GraphTypes.LineGraph]: () => {},
+    [GraphTypes.WaterfallGraph]: () => {},
+    [GraphTypes.ColumnGraph]: drawColumns,
+    [GraphTypes.ScatterGraph]: () => {},
+};
+
+export type WaterfallGraph = Array<WaterfallPoint>
+export type LineGraph = Array<Point>
+export type ColumnGraph = Array<Column>
+export type ScatterGraph = Array<Point>
+
+// Graph Structural Descriptors
+export interface GraphWrapper<T extends GraphTypes> {
+    type: T,
+    color: string,
+    graph: GraphTypeMap[T]
+}
+
+export type Graphs = Map<ZIndex, GraphWrapper<GraphTypes>>
+
+// Graph Content (the structures inside them)
 export interface Point {
     x: number,
     y: number
 }
+
 export type WaterfallPoint = Point & {
     height: number
 }
-export type WaterfallGraph = Array<WaterfallPoint>
-export type LineGraph = Array<Point>
+
+export type Column = Point & {
+    width: number
+}
+
+export interface GraphData {
+    graphs: Graphs,
+    x_range: Range,
+    y_range: Range,
+    x_label?: string,
+    y_label?: string
+}
 
 // GraphController
+// I should probably change the space calculations to something else sometime
 export class GraphController implements ReactiveController {
-    host: Graph; // apparantly this is also valid lmao
     context!: CanvasRenderingContext2D
-    dataset: LineGraph = [
-        {x: 0, y: 10},
-        {x: 10, y: 30}
-    ]
-    x_range: Range = {
-        start: 0,
-        end: 10,
-        step: 0.3
-    }
-    y_range: Range = {
-        start: 0,
-        end: 40,
-        step: 0.05
-    }
+    host: Graph; // apparantly this is also valid lmao
+    graphs!: Graphs;
+    x_range!: Range;
+    y_range!: Range;
+    x_label?: string;
+    y_label?: string;
+    graphBox!: Cuboid;
 
     constructor(host: Graph) {
         (this.host = host).addController(this);
@@ -60,32 +106,53 @@ export class GraphController implements ReactiveController {
     hostConnected() {}
     hostDisconnected() {}
 
-    start() {
+    setGraph(graph: GraphData) {
+        this.graphs = graph?.graphs;
+        this.x_range = graph?.x_range;
+        this.y_range = graph?.y_range;
+        this.x_label = graph?.x_label;
+        this.y_label = graph?.y_label;
+    }
+
+    start(graph: GraphData) {
+        this.setGraph(graph);
         this.context = this.host.canvas.getContext('2d') as CanvasRenderingContext2D
 
         const ctx = this.context;
-        const width = parseInt(this.host.width);
-        const height = parseInt(this.host.height);
+        const dpr = window.devicePixelRatio || 1;
+        const width = this.host.canvas.width / dpr;
+        const height = this.host.canvas.height / dpr;
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, width, height);
 
-        const graphBox: Cuboid = {
-            x: 40,
+        this.graphBox = {
+            x: 60,
             y: 0,
-            width: width - 40,
-            height: height - 20
+            width: width - 60,
+            height: height - 40
         }
 
-        // we need to calculate our Range and our intervals.
-        const x_entries: number = (this.x_range.end - this.x_range.start) 
-        const y_entries: number = (this.y_range.end - this.y_range.start)
-        const x_entries_scaled: number = x_entries * this.x_range.step
-        const y_entries_scaled: number = y_entries * this.y_range.step
+        this.render()
+    }
 
-        this.drawGridLines(ctx, graphBox.width, graphBox.height, graphBox.x, graphBox.y, x_entries_scaled, y_entries_scaled);
-        this.drawLine(ctx, graphBox.width, graphBox.height, '#3f9062', graphBox.x, graphBox.y, x_entries, y_entries)
-        this.drawYAxis(ctx, graphBox.y, graphBox.height, this.y_range)
-        this.drawXAxis(ctx, graphBox.x, graphBox.y, graphBox.width, graphBox.height, this.x_range)
+    render() {
+        const ctx = this.context;
+        // if there is atleast one graph component, draw the whole ordeal
+        if (this.graphs?.has(0)) {
+            // we need to calculate our Range and our intervals.
+            const x_entries: number = (this.x_range.end - this.x_range.start) // this is the AMOUNT of x entries that we have
+            const y_entries: number = (this.y_range.end - this.y_range.start)
+            const x_entries_scaled: number = x_entries * this.x_range.step // this is the absolute positioning of them relative to the zero-point
+            const y_entries_scaled: number = y_entries * this.y_range.step
+
+            this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_entries_scaled, y_entries_scaled);
+            this.drawYAxis(ctx, this.graphBox.y, this.graphBox.height, this.y_range, this.y_label);
+            this.drawXAxis(ctx, this.graphBox.x, this.graphBox.y, this.graphBox.width, this.graphBox.height, this.x_range, this.x_label);
+        }
+        // draw our graphs in order
+        for (const graph of this?.graphs ?? []) {
+            GraphRenderers[graph[1].type](ctx, graph[1] as never, this.graphBox, this.x_range, this.y_range);
+        }
     }
 
     drawGridLines(ctx: CanvasRenderingContext2D, width: number, height: number, start_x: number, start_y: number, x_entries: number, y_entries: number) {
@@ -111,7 +178,7 @@ export class GraphController implements ReactiveController {
         }
     }
 
-    drawYAxis(ctx: CanvasRenderingContext2D, start_y: number, y_height: number, y_range: Range) {
+    drawYAxis(ctx: CanvasRenderingContext2D, start_y: number, y_height: number, y_range: Range, label?: string) {
         // y_entries_scaled
         // calculate the amount of side entries we have, and the absolute interval (in pixels)
         const entries = (y_range.end - y_range.start) * y_range.step
@@ -123,11 +190,19 @@ export class GraphController implements ReactiveController {
         for (let i = entries; i >= 0; i -= 1) {
             const abs_pos = i * absolute_y_interval + 12 // calculate position, with a small offset to display the initial number
             // we need to find out what to display.
-            ctx.fillText(`${(entries - i) * (1 / y_range.step) }`.substring(0, MAX_AXIS_LENGTH), 0, abs_pos)
+            ctx.fillText(`${(entries - i) * (1 / y_range.step) }`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos)
         }
+
+        // draw the label -> https://stackoverflow.com/questions/3167928/drawing-rotated-text-on-a-html5-canvas
+        ctx.save();
+        ctx.translate(10, y_height / 2 + start_y);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign = 'center';
+        ctx.fillText(label ? label : '', 0, 0);
+        ctx.restore();
     }
 
-    drawXAxis(ctx: CanvasRenderingContext2D, start_x: number, start_y: number, x_width: number, y_height: number, x_range: Range) {
+    drawXAxis(ctx: CanvasRenderingContext2D, start_x: number, start_y: number, x_width: number, y_height: number, x_range: Range, label?: string) {
         // y_entries_scaled
         // calculate the amount of side entries we have, and the absolute interval (in pixels)
         const entries = (x_range.end - x_range.start) * x_range.step
@@ -143,12 +218,21 @@ export class GraphController implements ReactiveController {
             const text_in_pixels = ctx.measureText(text).width;
             ctx.fillText(text, abs_pos - text_in_pixels, y_height + 20);
         }
+
+        // label
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.fillText(label ? label : '', x_width / 2 + start_x, start_y + y_height + 40);
+        ctx.restore();
     }
 
-    drawLine(ctx: CanvasRenderingContext2D, grid_width: number, grid_height: number, color: string, start_x: number, start_y: number, x_entries: number, y_entries: number) {
+    drawLine(ctx: CanvasRenderingContext2D, graph: GraphWrapper<GraphTypes.LineGraph>, grid_width: number, grid_height: number, color: string, start_x: number, start_y: number, x_entries: number, y_entries: number) {
         ctx.strokeStyle = color;
         ctx.lineWidth = 5;
         ctx.beginPath();
+
+        const dataset = graph.graph
+
         // TODO: clamp dataset in the x_entries and y_entries thing
         // we need to do some point transformations to invert our view and to be correctly scaled.
         const transform_point = (point: Point) => {
@@ -157,10 +241,10 @@ export class GraphController implements ReactiveController {
                 y: grid_height - point.y * (grid_height / y_entries) + start_y
             } as Point // transformations: We invert the coordinate space, convert locasl space to global space and we apply our offsets
         }
-        const base_point = transform_point(this.dataset[0])
+        const base_point = transform_point(dataset[0])
         ctx.moveTo(base_point.x, base_point.y);
-        for (let i = 1; i <= this.dataset.length - 1; i++) {
-            const first = transform_point(this.dataset[i]);
+        for (let i = 1; i <= dataset.length - 1; i++) {
+            const first = transform_point(dataset[i]);
             ctx.lineTo(first.x, first.y);
         }
         ctx.stroke();
@@ -171,4 +255,21 @@ export class GraphController implements ReactiveController {
 /*
 I want to refactor this system eventually for more isolated logic and clarity: this is a clusterfuck and confusing mess of argument passing. With some extra interfaces idk which yet.
 Also i want to centralize some mathematical calculations (wherever possible). And document the math.
+*/
+
+/*
+    dataset: LineGraph = [
+        {x: 0, y: 10},
+        {x: 10, y: 30}
+    ]
+    x_range: Range = {
+        start: 0,
+        end: 24,
+        step: 0.5
+    }
+    y_range: Range = {
+        start: 0,
+        end: 40,
+        step: 0.05
+    }
 */

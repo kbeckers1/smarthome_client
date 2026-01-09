@@ -10,7 +10,7 @@ export interface Button {
     title: string,
     icon: string,
     disabled: boolean,
-    type: "Primary" | "Secondary" | "Red"
+    type: "Primary" | "Secondary" | "Red" | "Yellow"
 }
 export interface Title {
     icon: string,

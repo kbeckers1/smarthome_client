@@ -1,7 +1,6 @@
 (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, {enumerable: true, configurable: true, writable: true, value}) : obj[key] = value;
   var __decorate = (decorators, target, key, kind) => {
     var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
     for (var i9 = decorators.length - 1, decorator; i9 >= 0; i9--)
@@ -10,10 +9,6 @@
     if (kind && result)
       __defProp(target, key, result);
     return result;
-  };
-  var __publicField = (obj, key, value) => {
-    __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-    return value;
   };
 
   // node_modules/@lit/reactive-element/css-tag.js
@@ -733,9 +728,9 @@
 
   // node_modules/signal-polyfill/dist/index.js
   var __defProp2 = Object.defineProperty;
-  var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, {enumerable: true, configurable: true, writable: true, value}) : obj[key] = value;
-  var __publicField2 = (obj, key, value) => {
-    __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp2(obj, key, {enumerable: true, configurable: true, writable: true, value}) : obj[key] = value;
+  var __publicField = (obj, key, value) => {
+    __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
     return value;
   };
   var __accessCheck = (obj, member, msg) => {
@@ -1099,7 +1094,7 @@
     class State {
       constructor(initialValue, options = {}) {
         __privateAdd(this, _brand);
-        __publicField2(this, _a);
+        __publicField(this, _a);
         const ref = createSignal(initialValue);
         const node = ref[SIGNAL];
         this[NODE] = node;
@@ -1137,7 +1132,7 @@
     class Computed {
       constructor(computation, options) {
         __privateAdd(this, _brand2);
-        __publicField2(this, _b);
+        __publicField(this, _b);
         const ref = createComputed(computation);
         const node = ref[SIGNAL];
         node.consumerAllowSignalWrites = true;
@@ -1218,7 +1213,7 @@
         constructor(notify) {
           __privateAdd(this, _brand3);
           __privateAdd(this, _assertSignals);
-          __publicField2(this, _a2);
+          __publicField(this, _a2);
           let node = Object.create(REACTIVE_NODE);
           node.wrapper = this;
           node.consumerMarkedDirty = notify;
@@ -1532,7 +1527,7 @@
   };
   var _Router = class {
     constructor() {
-      __publicField(this, "state", r9(0));
+      this.state = r9(5);
     }
     route(route) {
       this.state.set(route);
@@ -1622,10 +1617,6 @@
   var MenuEntry = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "title");
-      __publicField(this, "type");
-      __publicField(this, "icon");
-      __publicField(this, "entry");
       this.title = "Entry";
       this.entry = 0;
       this.type = 0;
@@ -1692,8 +1683,6 @@
   var Title = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "margined");
-      __publicField(this, "size");
       this.margined = true;
       this.size = "24px";
     }
@@ -1767,7 +1756,6 @@
   var RichText = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "text");
       this.text = "Continue";
     }
     render() {
@@ -1807,9 +1795,6 @@
   var Surface = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "width");
-      __publicField(this, "height");
-      __publicField(this, "padding");
       this.padding = "15px";
       this.width = "fit-content";
       this.height = "auto";
@@ -1867,10 +1852,6 @@
   var DataTile = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "width");
-      __publicField(this, "height");
-      __publicField(this, "color");
-      __publicField(this, "border_color");
       this.width = "fit-content";
       this.height = "auto";
       this.color = "#ffffff";
@@ -2023,10 +2004,6 @@
   var Button = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "type");
-      __publicField(this, "icon");
-      __publicField(this, "disabled");
-      __publicField(this, "callback");
       this.type = red;
       this.icon = "";
       this.callback = () => {
@@ -2156,8 +2133,7 @@
   var PopupSurface = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "shape", {width: "500"});
-      __publicField(this, "counter");
+      this.shape = {width: "500"};
       this.counter = 0;
       this.style.setProperty("--width", this.shape.width || "");
     }
@@ -2204,7 +2180,7 @@
         `;
     }
   };
-  __publicField(PopupSurface, "styles", i`
+  PopupSurface.styles = i`
         :root {
             --width: 500px;
         }
@@ -2234,7 +2210,7 @@
         .container > * + * {
             border-top: solid 1px #a2a2a2;
         }  
-    `);
+    `;
   __decorate([
     n4({type: Object, attribute: false})
   ], PopupSurface.prototype, "shape", 2);
@@ -2334,9 +2310,6 @@
   var PopupSurface2 = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "width");
-      __publicField(this, "height");
-      __publicField(this, "shape");
       this.width = "250px";
       this.height = "100px";
       this.shape = {style: "red", title: "New Message", description: "DescriptionDescriptionDescription DescriptionDescriptionDescription"};
@@ -2419,9 +2392,6 @@
   var TextField = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "text");
-      __publicField(this, "password");
-      __publicField(this, "callback");
       this.text = "Continue";
       this.password = false;
       this.callback = () => {
@@ -2449,53 +2419,89 @@
     t3("md-textfield")
   ], TextField);
 
+  // src/services/graph_renderers/ColumnRenderer.ts
+  function drawColumns(ctx, graph2, graphBox, x_range, y_range) {
+    for (let i9 = 0; i9 <= graph2.graph.length - 1; i9++) {
+      const column = graph2.graph[i9];
+      const start_x = column.x - column.width / 2;
+      const end_x = column.x + column.width / 2;
+      const start_y = column.y;
+      const baseline_y = graphBox.y + graphBox.height;
+      const x_entries = x_range.end - x_range.start;
+      const abs_start_x = start_x * (graphBox.width / x_entries) + graphBox.x;
+      const abs_end_x = end_x * (graphBox.width / x_entries) + graphBox.x;
+      const abs_start_y = -1 * (start_y * (graphBox.height / (y_range.end - y_range.start)));
+      const width = abs_end_x - abs_start_x;
+      ctx.fillStyle = graph2.color;
+      ctx.fillRect(abs_start_x, baseline_y, width, abs_start_y);
+    }
+    ;
+  }
+
   // src/services/GraphController.ts
   var MAX_AXIS_LENGTH = 4;
+  var GraphTypes;
+  (function(GraphTypes2) {
+    GraphTypes2[GraphTypes2["LineGraph"] = 0] = "LineGraph";
+    GraphTypes2[GraphTypes2["WaterfallGraph"] = 1] = "WaterfallGraph";
+    GraphTypes2[GraphTypes2["ColumnGraph"] = 2] = "ColumnGraph";
+    GraphTypes2[GraphTypes2["ScatterGraph"] = 3] = "ScatterGraph";
+  })(GraphTypes || (GraphTypes = {}));
+  var GraphRenderers = {
+    [0]: () => {
+    },
+    [1]: () => {
+    },
+    [2]: drawColumns,
+    [3]: () => {
+    }
+  };
   var GraphController = class {
     constructor(host) {
-      __publicField(this, "host");
-      __publicField(this, "context");
-      __publicField(this, "dataset", [
-        {x: 0, y: 10},
-        {x: 10, y: 30}
-      ]);
-      __publicField(this, "x_range", {
-        start: 0,
-        end: 10,
-        step: 0.3
-      });
-      __publicField(this, "y_range", {
-        start: 0,
-        end: 40,
-        step: 0.05
-      });
       (this.host = host).addController(this);
     }
     hostConnected() {
     }
     hostDisconnected() {
     }
-    start() {
+    setGraph(graph2) {
+      this.graphs = graph2?.graphs;
+      this.x_range = graph2?.x_range;
+      this.y_range = graph2?.y_range;
+      this.x_label = graph2?.x_label;
+      this.y_label = graph2?.y_label;
+    }
+    start(graph2) {
+      this.setGraph(graph2);
       this.context = this.host.canvas.getContext("2d");
       const ctx = this.context;
-      const width = parseInt(this.host.width);
-      const height = parseInt(this.host.height);
+      const dpr = window.devicePixelRatio || 1;
+      const width = this.host.canvas.width / dpr;
+      const height = this.host.canvas.height / dpr;
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
-      const graphBox = {
-        x: 40,
+      this.graphBox = {
+        x: 60,
         y: 0,
-        width: width - 40,
-        height: height - 20
+        width: width - 60,
+        height: height - 40
       };
-      const x_entries = this.x_range.end - this.x_range.start;
-      const y_entries = this.y_range.end - this.y_range.start;
-      const x_entries_scaled = x_entries * this.x_range.step;
-      const y_entries_scaled = y_entries * this.y_range.step;
-      this.drawGridLines(ctx, graphBox.width, graphBox.height, graphBox.x, graphBox.y, x_entries_scaled, y_entries_scaled);
-      this.drawLine(ctx, graphBox.width, graphBox.height, "#3f9062", graphBox.x, graphBox.y, x_entries, y_entries);
-      this.drawYAxis(ctx, graphBox.y, graphBox.height, this.y_range);
-      this.drawXAxis(ctx, graphBox.x, graphBox.y, graphBox.width, graphBox.height, this.x_range);
+      this.render();
+    }
+    render() {
+      const ctx = this.context;
+      if (this.graphs?.has(0)) {
+        const x_entries = this.x_range.end - this.x_range.start;
+        const y_entries = this.y_range.end - this.y_range.start;
+        const x_entries_scaled = x_entries * this.x_range.step;
+        const y_entries_scaled = y_entries * this.y_range.step;
+        this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_entries_scaled, y_entries_scaled);
+        this.drawYAxis(ctx, this.graphBox.y, this.graphBox.height, this.y_range, this.y_label);
+        this.drawXAxis(ctx, this.graphBox.x, this.graphBox.y, this.graphBox.width, this.graphBox.height, this.x_range, this.x_label);
+      }
+      for (const graph2 of this?.graphs ?? []) {
+        GraphRenderers[graph2[1].type](ctx, graph2[1], this.graphBox, this.x_range, this.y_range);
+      }
     }
     drawGridLines(ctx, width, height, start_x, start_y, x_entries, y_entries) {
       ctx.strokeStyle = "#e3e3e3";
@@ -2515,17 +2521,23 @@
         ctx.stroke();
       }
     }
-    drawYAxis(ctx, start_y, y_height, y_range) {
+    drawYAxis(ctx, start_y, y_height, y_range, label) {
       const entries = (y_range.end - y_range.start) * y_range.step;
       const absolute_y_interval = y_height / entries;
       ctx.font = "14px 'Funnel Display'";
       ctx.fillStyle = "#000000";
       for (let i9 = entries; i9 >= 0; i9 -= 1) {
         const abs_pos = i9 * absolute_y_interval + 12;
-        ctx.fillText(`${(entries - i9) * (1 / y_range.step)}`.substring(0, MAX_AXIS_LENGTH), 0, abs_pos);
+        ctx.fillText(`${(entries - i9) * (1 / y_range.step)}`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos);
       }
+      ctx.save();
+      ctx.translate(10, y_height / 2 + start_y);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.fillText(label ? label : "", 0, 0);
+      ctx.restore();
     }
-    drawXAxis(ctx, start_x, start_y, x_width, y_height, x_range) {
+    drawXAxis(ctx, start_x, start_y, x_width, y_height, x_range, label) {
       const entries = (x_range.end - x_range.start) * x_range.step;
       const absolute_x_interval = x_width / entries;
       ctx.font = "14px 'Funnel Display'";
@@ -2536,21 +2548,26 @@
         const text_in_pixels = ctx.measureText(text).width;
         ctx.fillText(text, abs_pos - text_in_pixels, y_height + 20);
       }
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillText(label ? label : "", x_width / 2 + start_x, start_y + y_height + 40);
+      ctx.restore();
     }
-    drawLine(ctx, grid_width, grid_height, color, start_x, start_y, x_entries, y_entries) {
+    drawLine(ctx, graph2, grid_width, grid_height, color, start_x, start_y, x_entries, y_entries) {
       ctx.strokeStyle = color;
       ctx.lineWidth = 5;
       ctx.beginPath();
+      const dataset = graph2.graph;
       const transform_point = (point) => {
         return {
           x: point.x * (grid_width / x_entries) + start_x,
           y: grid_height - point.y * (grid_height / y_entries) + start_y
         };
       };
-      const base_point = transform_point(this.dataset[0]);
+      const base_point = transform_point(dataset[0]);
       ctx.moveTo(base_point.x, base_point.y);
-      for (let i9 = 1; i9 <= this.dataset.length - 1; i9++) {
-        const first = transform_point(this.dataset[i9]);
+      for (let i9 = 1; i9 <= dataset.length - 1; i9++) {
+        const first = transform_point(dataset[i9]);
         ctx.lineTo(first.x, first.y);
       }
       ctx.stroke();
@@ -2564,7 +2581,7 @@
 
         }
         :host {
-            height: calc(100% - 30px);
+            height: calc(100% - 10px);
             width: 100%;
         }
     </style>    
@@ -2572,12 +2589,7 @@
   var Graph = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "canvas");
-      __publicField(this, "width");
-      __publicField(this, "height");
-      __publicField(this, "graphController", new GraphController(this));
-      __publicField(this, "resizeObserver");
-      __publicField(this, "resizeTimeout");
+      this.graphController = new GraphController(this);
       this.width = "100px";
       this.height = "100px";
     }
@@ -2588,12 +2600,18 @@
         }
         this.resizeTimeout = window.setTimeout(() => {
           this.updateCanvasSize();
-          this.graphController.start();
+          this.graphController.render();
         }, 200);
       });
       this.updateCanvasSize();
-      this.graphController.start();
+      this.graphController.start(this.graph);
       this.resizeObserver.observe(this);
+    }
+    updated(_changedProperties) {
+      if (_changedProperties.has("graph")) {
+        this.graphController.setGraph(this.graph);
+        this.graphController.render();
+      }
     }
     updateCanvasSize() {
       const style = getComputedStyle(this);
@@ -2606,7 +2624,8 @@
       this.canvas.height = parseInt(this.height) * dpr;
       this.canvas.width = parseInt(this.width) * dpr;
       const ctx = this.canvas.getContext("2d");
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.graphController.start(this.graph);
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -2616,8 +2635,6 @@
       return x`
             ${base_style9}
             <canvas 
-                height="${this.height}"
-                width="${this.width}"
                 id="canvas"
             ></canvas>
         `;
@@ -2628,10 +2645,7 @@
   ], Graph.prototype, "canvas", 2);
   __decorate([
     n4({attribute: false})
-  ], Graph.prototype, "width", 2);
-  __decorate([
-    n4({attribute: false})
-  ], Graph.prototype, "height", 2);
+  ], Graph.prototype, "graph", 2);
   Graph = __decorate([
     t3("adv-graph")
   ], Graph);
@@ -2657,7 +2671,7 @@
             }
         </style>
         <div class="base ${value}">
-            <span>${value}</span>
+            <span>${value === true ? "Ja" : "Nee"}</span>
         </div>
       `;
   }
@@ -2675,14 +2689,8 @@
                 border-radius: 10px;
                 color: white;
             }
-            .true {
-                background-color: #007604;
-            }
-            .false {
-                background-color: #c30000;
-            }
         </style>
-        <md-button icon=${value.icon}  .type=${Styles2[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
+        <md-button icon=${value.icon} .callback=${value.callback} .type=${Styles2[value.type]} .disabled=${value.disabled}>${value.title}</md-button>
       `;
   }
 
@@ -2784,12 +2792,14 @@
   var Table = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "text");
-      __publicField(this, "table");
       this.text = "Continue";
       this.table = sheet;
     }
     render() {
+      const headers = Object.entries(this.table?.headers ?? {});
+      const values = Array.isArray(this.table?.values) ? this.table.values : [];
+      if (values.length === 0)
+        return x`<div style="vertical-align: center; justify-content: middle;"><md-richtext>Awaiting data</md-richtext></div>`;
       return x`
             ${base_style10}
             <table>
@@ -2803,7 +2813,6 @@
                         ${c5(Object.entries(instance), (key) => {
         const renderer_type = this.table.headers[key[0]].renderer;
         const renderer = Renderers[renderer_type];
-        console.log("render");
         return x`<td>${renderer.render(key[1])}</td>`;
       })}
                         </tr>
@@ -2826,9 +2835,7 @@
   var SplitLayout = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "orientation", "horizontal");
-      __publicField(this, "startSize");
-      __publicField(this, "endSize");
+      this.orientation = "horizontal";
       this.startSize = "20%";
       this.endSize = "10%";
     }
@@ -2862,7 +2869,7 @@
         `;
     }
   };
-  __publicField(SplitLayout, "styles", i`
+  SplitLayout.styles = i`
         :host {
             display: flex;
             width: 100%;
@@ -2877,7 +2884,7 @@
         ::slotted([slot="middle"]) {
               flex: 1;
         }
-    `);
+    `;
   __decorate([
     n4({type: String, reflect: true})
   ], SplitLayout.prototype, "orientation", 2);
@@ -3052,8 +3059,6 @@
   // src/services/PopupController.ts
   var PopupController = class {
     constructor(host, timeout = 1e3) {
-      __publicField(this, "host");
-      __publicField(this, "active_popups");
       (this.host = host).addController(this);
       this.active_popups = [];
     }
@@ -3353,9 +3358,6 @@
   // src/services/NotificationController.ts
   var NotificationController = class {
     constructor(host, timeout = 1e3) {
-      __publicField(this, "host");
-      __publicField(this, "ordered_notifications");
-      __publicField(this, "notification_ownership");
       (this.host = host).addController(this);
       this.ordered_notifications = [];
       this.notification_ownership = new Map();
@@ -3413,16 +3415,7 @@
                         <motion-host class="wrapper">
                             ${c5(this.ordered_notifications, (wrapper) => wrapper.id, (wrapper) => x`
                                     <gl-notification
-                                    ${F({
-        in: [
-          {opacity: 0, transform: "translateY(-20px)"},
-          {opacity: 1, transform: "translateY(0)"}
-        ],
-        out: [
-          {opacity: 1, transform: "translateY(0)"},
-          {opacity: 0, transform: "translateY(-20px)"}
-        ]
-      })}
+                                    ${F()}
                                     .shape=${wrapper.notification}
                                     ></gl-notification>
                                 `)}
@@ -3434,11 +3427,110 @@
   };
   var notificationContext = n10("notificationController");
 
+  // src/services/GlobalState.ts
+  var Store = class extends EventTarget {
+    constructor(initial) {
+      super();
+      this._state = initial;
+    }
+    get value() {
+      return this._state;
+    }
+    set(patch) {
+      this._state = {...this._state, ...patch};
+      this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
+    }
+    subscribe(callback) {
+      const handler = (e10) => callback(e10.detail);
+      this.addEventListener("change", handler);
+      callback(this._state);
+      return () => this.removeEventListener("change", handler);
+    }
+  };
+  var globalState = new Store({});
+  var StoreConsumer = class {
+    constructor(host, store) {
+      this.host = host;
+      this.store = store;
+      this.host.addController(this);
+    }
+    hostConnected() {
+      this.unsub = this.store.subscribe(() => this.host.requestUpdate());
+    }
+    hostDisconnected() {
+      if (this.unsub)
+        this.unsub();
+    }
+    get state() {
+      return this.store.value;
+    }
+    set(updates) {
+      this.store.set(updates);
+    }
+  };
+
+  // src/services/AuthService.ts
+  var Result;
+  (function(Result3) {
+    Result3[Result3["Success"] = 0] = "Success";
+    Result3[Result3["Fail"] = 1] = "Fail";
+  })(Result || (Result = {}));
+  var AuthService = class {
+    constructor(host) {
+      this.host = host;
+      this.api = host.apiService.value;
+      this.authenticated = false;
+    }
+    async generate_token(username, password) {
+      const res = await this.api.request({
+        Url: "http://localhost:5000/api/login",
+        Catch: false,
+        Type: "POST",
+        Authorization: false,
+        Body: {
+          naam: username,
+          wachtwoord: password
+        }
+      });
+      if (res.success === false) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Incorrect username or password."
+        });
+        return 1;
+      }
+      this.authenticated = true;
+      this.token = res.data["token"];
+      this.api.initial_population();
+      return 0;
+    }
+    deauthenticate() {
+      const temp_token = this.token;
+      this.authenticated = false;
+      this.token = "";
+      this.host.notificationController.value.notify({
+        style: "default",
+        description: "Logged out"
+      });
+      Router.route(5);
+      const res = this.api.request({
+        Url: "http://localhost:5000/api/logout",
+        Catch: false,
+        Type: "POST",
+        Authorization: true,
+        Params: new URLSearchParams({
+          token: temp_token
+        })
+      });
+    }
+  };
+  var authContext = n10("authController");
+
   // src/services/APIService.ts
   var APIService = class {
     constructor(host, timeout = 5e3) {
-      __publicField(this, "host");
-      __publicField(this, "timeout");
+      this.devices = new Store({});
+      this.accounts = new Store({});
       (this.host = host).addController(this);
       this.timeout = timeout;
     }
@@ -3449,8 +3541,9 @@
     async request(req) {
       try {
         console.log(this.host.authService.value.token);
-        req.Params?.append("Authorization", this.host.authService.value.token);
-        const url = req.Params ? `${req.Url}?${req.Params.toString()}` : req.Url;
+        const params = req.Params ? req.Params : new URLSearchParams();
+        params.append("token", this.host.authService.value.token);
+        const url = `${req.Url}?${params.toString()}`;
         const headers = {};
         if (req.Headers) {
           req.Headers.forEach((value, key) => headers[key] = value);
@@ -3471,16 +3564,19 @@
         });
         clearTimeout(timeoutId);
         if (!response.ok) {
+          const text = await response.text().catch(() => "");
           if (req.Catch === true) {
             this.handleHttpError(response);
           }
-          return response.status;
+          return {success: false, error_code: response.status, message: text};
         }
         const contentType = response.headers.get("Content-Type") || "";
         if (contentType.includes("application/json")) {
-          return await response.json();
+          const parsed = await response.json();
+          return {success: true, data: parsed};
         } else {
-          return await response.text();
+          const txt = await response.text();
+          return {success: true, data: txt};
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
@@ -3488,13 +3584,13 @@
             style: "red",
             description: "Request timed out"
           });
-          return 418;
+          return {success: false, error_code: 418, message: "I'm a teapot"};
         }
         this.host.notificationController.value.notify({
           style: "red",
           description: "Unknown network error"
         });
-        return 100;
+        return {success: false, error_code: 100, message: "Unknown network error"};
       }
     }
     async handleHttpError(response) {
@@ -3527,68 +3623,91 @@
       }
       this.host.authService.value.deauthenticate();
     }
-  };
-  var apiContext = n10("apiService");
-
-  // src/services/AuthService.ts
-  var Result;
-  (function(Result2) {
-    Result2[Result2["Success"] = 0] = "Success";
-    Result2[Result2["Fail"] = 1] = "Fail";
-  })(Result || (Result = {}));
-  var AuthService = class {
-    constructor(host) {
-      __publicField(this, "host");
-      __publicField(this, "api");
-      __publicField(this, "token");
-      __publicField(this, "authenticated");
-      this.host = host;
-      this.api = host.apiService.value;
-      this.authenticated = false;
+    async initial_population() {
+      await Promise.all([
+        this.fetch_devices(),
+        this.fetch_accounts()
+      ]);
+      console.log("Fetched");
     }
-    async generate_token(username, password) {
-      const res = await this.api.request({
-        Url: "http://localhost:5000/api/login",
+    async fetch_devices() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/devices",
         Catch: false,
-        Type: "POST",
-        Authorization: false,
-        Body: {
-          naam: username,
-          wachtwoord: password
-        }
+        Type: "GET",
+        Authorization: true
       });
-      if (typeof res === "number") {
+      if (!res.success) {
         this.host.notificationController.value.notify({
           style: "red",
-          description: "Incorrect username or password."
+          description: "Error fetching data"
         });
-        return 1;
+        return Result.Fail;
       }
-      this.authenticated = true;
-      this.token = res["token"];
-      return 0;
+      const dataArray = res.data || [];
+      const data = dataArray.map(({status, ...rest}) => rest);
+      const map = Object.fromEntries(data.map((d4) => [d4.apparaat_id, d4]));
+      this.devices.set(map);
+      return Result.Success;
     }
-    deauthenticate() {
-      const temp_token = this.token;
-      this.authenticated = false;
-      this.token = "";
-      this.host.notificationController.value.notify({
-        style: "default",
-        description: "Logged out"
+    async fetch_accounts() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/users",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
       });
-      Router.route(5);
-      const res = this.api.request({
-        Url: "http://localhost:5000/api/logout",
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const dataArray = res.data ?? [];
+      const map = Object.fromEntries(dataArray.map((d4) => [d4.gebruiker_id, d4]));
+      this.accounts.set(map);
+      return Result.Success;
+    }
+    async revoke_account_access(id) {
+      const req = {
+        Authorization: true,
         Catch: false,
         Type: "POST",
-        Authorization: true,
+        Url: "http://localhost:5000/api/revoke",
         Params: new URLSearchParams({
-          token: temp_token
+          user_id: String(id)
         })
-      });
+      };
+      const res = await this.request(req);
+      console.log(res);
+      if (res.success) {
+        await this.fetch_accounts();
+        return Result.Success;
+      } else {
+        return Result.Fail;
+      }
+    }
+    async toggle_device(id, target_state) {
+      const req = {
+        Authorization: true,
+        Catch: false,
+        Type: "POST",
+        Url: "http://localhost:5000/api/devices/toggle",
+        Body: {
+          apparaat_id: id,
+          gewenste_status: target_state
+        }
+      };
+      const res = await this.request(req);
+      if (res.success) {
+        return Result.Success;
+      } else {
+        return Result.Fail;
+      }
     }
   };
-  var authContext = n10("authController");
+  var apiContext = n10("apiService");
 
   // src/pages/Dashboard.ts
   var base_style11 = u5`
@@ -3609,12 +3728,10 @@
   var Dashboard = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "text");
-      __publicField(this, "_onRoute");
-      __publicField(this, "popupController", new i7(this, {context: popupContext, initialValue: new PopupController(this, 100)}));
-      __publicField(this, "notificationController", new i7(this, {context: notificationContext, initialValue: new NotificationController(this, 100)}));
-      __publicField(this, "apiService", new i7(this, {context: apiContext, initialValue: new APIService(this)}));
-      __publicField(this, "authService", new i7(this, {context: authContext, initialValue: new AuthService(this)}));
+      this.popupController = new i7(this, {context: popupContext, initialValue: new PopupController(this, 100)});
+      this.notificationController = new i7(this, {context: notificationContext, initialValue: new NotificationController(this, 100)});
+      this.apiService = new i7(this, {context: apiContext, initialValue: new APIService(this)});
+      this.authService = new i7(this, {context: authContext, initialValue: new AuthService(this)});
       this.text = "Continue";
       this._onRoute = () => this.requestUpdate();
     }
@@ -3703,7 +3820,6 @@
   var Sidebar = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "_onRoute");
       this._onRoute = () => this.requestUpdate();
     }
     connectedCallback() {
@@ -3761,6 +3877,57 @@
     t3("side-bar")
   ], Sidebar);
 
+  // src/directives/Wrap.ts
+  async function Wrap(managed_object, before, after, during, ...passed_object) {
+    await before(managed_object);
+    try {
+      await during(...passed_object);
+    } catch (e10) {
+    }
+    await after(managed_object);
+  }
+
+  // src/services/micro/BaseFlow.ts
+  var BaseFlow = class {
+  };
+
+  // src/services/micro/ToggleDevice.ts
+  var ToggleDevice = class extends BaseFlow {
+    constructor(controller, api) {
+      super();
+      this.toggling_notification = {
+        style: "default",
+        description: "Toggling device"
+      };
+      this.error_notification = {
+        style: "red",
+        description: "Failed to toggle device"
+      };
+      this.success_notification = {
+        style: "default",
+        description: "Succesfully toggled device!"
+      };
+      this.api = api;
+      this.controller = controller;
+      return this;
+    }
+    async start(id, now_active) {
+      const target_state = !now_active;
+      const result = await this.api.toggle_device(id, target_state);
+      if (result === Result.Success) {
+        const devices = this.api.devices.value;
+        const current = devices[id];
+        if (current) {
+          const updated = {...current, actief: target_state};
+          this.api.devices.set({[id]: updated});
+        }
+        this.controller.notify(this.success_notification);
+      } else {
+        this.controller.notify(this.error_notification);
+      }
+    }
+  };
+
   // src/pages/views/full_frame/Home.ts
   var sheet2 = {
     headers: {
@@ -3793,7 +3960,7 @@
         actief: true,
         schakel: {
           disabled: true,
-          type: "Primary",
+          type: "Yellow",
           title: "Beheerd",
           icon: "",
           callback: () => {
@@ -3801,6 +3968,53 @@
         }
       }
     ]
+  };
+  var graph = {
+    type: GraphTypes.ColumnGraph,
+    color: "#e1b400",
+    graph: [
+      {x: 0.5, y: 1, width: 0.8},
+      {x: 1.5, y: 1.2, width: 0.8},
+      {x: 2.5, y: 1.2, width: 0.8},
+      {x: 3.5, y: 1.3, width: 0.8},
+      {x: 4.5, y: 1.4, width: 0.8},
+      {x: 5.5, y: 1.4, width: 0.8},
+      {x: 6.5, y: 1.4, width: 0.8},
+      {x: 7.5, y: 1.5, width: 0.8},
+      {x: 8.5, y: 1.5, width: 0.8},
+      {x: 9.5, y: 1.5, width: 0.8},
+      {x: 10.5, y: 1.5, width: 0.8},
+      {x: 11.5, y: 1.4, width: 0.8},
+      {x: 12.5, y: 1.4, width: 0.8},
+      {x: 13.5, y: 1.3, width: 0.8},
+      {x: 14.5, y: 1.4, width: 0.8},
+      {x: 15.5, y: 1.5, width: 0.8},
+      {x: 16.5, y: 1.7, width: 0.8},
+      {x: 17.5, y: 1.8, width: 0.8},
+      {x: 18.5, y: 1.9, width: 0.8},
+      {x: 19.5, y: 2, width: 0.8},
+      {x: 20.5, y: 1.7, width: 0.8},
+      {x: 21.5, y: 1.5, width: 0.8},
+      {x: 22.5, y: 1.3, width: 0.8},
+      {x: 23.5, y: 1.2, width: 0.8}
+    ]
+  };
+  var kwh_graph = {
+    x_range: {
+      start: 0,
+      end: 24,
+      step: 0.25
+    },
+    y_range: {
+      start: 0,
+      end: 5,
+      step: 1
+    },
+    x_label: "Time in hours",
+    y_label: "kWh usage",
+    graphs: new Map([
+      [0, graph]
+    ])
   };
   var base_style13 = x`
     <style>
@@ -3857,11 +4071,51 @@
   var HomeLayout = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "PopupController");
-      __publicField(this, "NotificationController");
-      __publicField(this, "AuthService");
+      this.disabledTableButtons = new Set([]);
+      this.button_callback = this.button_callback.bind(this);
+    }
+    firstUpdated(_changedProperties) {
+      if (this.APIService?.devices && !this.DeviceConsumer) {
+        this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+      }
+    }
+    updated(_changedProperties) {
+      if (!this.DeviceConsumer && this.APIService?.devices) {
+        this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+      }
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+    }
+    async button_callback(apparaat_id, nu_actief) {
+      await Wrap(this.disabledTableButtons, (set) => {
+        set.add(apparaat_id);
+        this.requestUpdate();
+      }, (set) => {
+        set.delete(apparaat_id);
+        this.requestUpdate();
+      }, async (id, now_active) => {
+        await new ToggleDevice(this.NotificationController, this.APIService).start(id, now_active);
+      }, apparaat_id, nu_actief);
     }
     render() {
+      const devicesState = Object.values(this.APIService?.devices.value);
+      const passable = devicesState.map((value) => ({
+        naam: value.naam,
+        kamer: value.kamer,
+        energieverbruik: value.huidig_verbruik,
+        actief: value.actief,
+        schakel: {
+          disabled: value.beheerd || this.disabledTableButtons.has(value.apparaat_id),
+          type: "Yellow",
+          title: "Schakel",
+          icon: "",
+          callback: (e10) => {
+            return this.button_callback(value.apparaat_id, value.actief);
+          }
+        }
+      }));
+      const dynamicSheet = Object.assign({}, sheet2, {values: Object.values(passable)});
       return x`
             ${base_style13}
             <div class="inner">
@@ -3887,11 +4141,11 @@
                         </gl-data-tile>
                     </gl-surface>
                     <gl-surface class="table_box" width="auto" height="auto">
-                        <adv-table .table=${sheet2}>
+                        <adv-table .table=${dynamicSheet}>
                         </adv-table>
                     </gl-surface>
                     <gl-surface class="graph_box" width="auto" height="auto">
-                        <adv-graph>
+                        <adv-graph .graph=${kwh_graph}>
                         </adv-graph>
                     </gl-surface>
                 </div>
@@ -3909,22 +4163,21 @@
   __decorate([
     c7({context: authContext})
   ], HomeLayout.prototype, "AuthService", 2);
+  __decorate([
+    c7({context: apiContext})
+  ], HomeLayout.prototype, "APIService", 2);
+  __decorate([
+    n4({attribute: false})
+  ], HomeLayout.prototype, "disabledTableButtons", 2);
   HomeLayout = __decorate([
     t3("ly-home")
   ], HomeLayout);
-
-  // src/services/micro/BaseFlow.ts
-  var BaseFlow = class {
-  };
 
   // src/services/micro/LogOut.ts
   var LogOut = class extends BaseFlow {
     constructor(controller, auth) {
       super();
-      __publicField(this, "controller");
-      __publicField(this, "controller_id");
-      __publicField(this, "auth");
-      __publicField(this, "popup", {
+      this.popup = {
         width: "400px",
         title: {
           icon: "",
@@ -3946,7 +4199,7 @@
             disabled: false
           }
         ]
-      });
+      };
       this.auth = auth;
       this.controller = controller;
       return this;
@@ -3968,6 +4221,74 @@
     }
   };
 
+  // src/services/micro/LogAllOut.ts
+  var LogAllOut = class extends BaseFlow {
+    constructor(controller, api, notification, target_id) {
+      super();
+      this.popup = {
+        width: "400px",
+        title: {
+          icon: "",
+          content: "Deze gebruiker uitloggen?"
+        },
+        body: u5`<md-richtext>Dit zal de sessies van deze gebruikers direct stopzetten.</md-richtext>`,
+        button_bar: [
+          {
+            icon: "/public/home.svg",
+            callback: () => this.confirm(),
+            title: "Log uit",
+            type: "Red",
+            disabled: false
+          },
+          {
+            icon: "",
+            callback: () => this.cancel(),
+            title: "Annuleren",
+            type: "Secondary",
+            disabled: false
+          }
+        ]
+      };
+      this.api = api;
+      this.controller = controller;
+      this.notification = notification;
+      this.target_id = target_id;
+      this.promise = new Promise((resolve, reject) => {
+        this.resolve = resolve;
+      });
+      return this;
+    }
+    async start() {
+      const id = this.controller.notify(this.popup);
+      this.controller_id = id;
+      return await this.promise;
+    }
+    async confirm() {
+      if (this.controller_id !== void 0) {
+        this.controller.dismiss(this.controller_id);
+        const result = await this.api.revoke_account_access(this.target_id);
+        this.resolve?.();
+        if (result === Result.Success) {
+          this.notification.notify({
+            style: "default",
+            description: "Succesvol alle sessies van deze gebruiker opgezegd."
+          });
+        } else {
+          this.notification.notify({
+            style: "red",
+            description: "Er ging iets mis met het opzeggen van de sessies van deze gebruiker."
+          });
+        }
+      }
+    }
+    cancel() {
+      if (this.controller_id !== void 0) {
+        this.resolve?.();
+        this.controller.dismiss(this.controller_id);
+      }
+    }
+  };
+
   // src/pages/views/full_frame/Account.ts
   var sheet3 = {
     headers: {
@@ -3975,41 +4296,20 @@
         label: "Gebruikersnaam",
         renderer: RenderNames.string
       },
-      verlooptOp: {
-        label: "Verloop",
+      email: {
+        label: "Email",
         renderer: RenderNames.string
       },
+      sessies: {
+        label: "Sessies",
+        renderer: RenderNames.number
+      },
       beheer: {
-        label: "Beheer",
+        label: "Sessiebeheer",
         renderer: RenderNames.button
       }
     },
-    values: [
-      {
-        gebruiker: "John",
-        verlooptOp: "06/01/26",
-        beheer: {
-          callback: () => {
-          },
-          type: "Red",
-          disabled: false,
-          icon: "",
-          title: "Revoke"
-        }
-      },
-      {
-        gebruiker: "John",
-        verlooptOp: "06/01/26",
-        beheer: {
-          callback: () => {
-          },
-          type: "Red",
-          disabled: false,
-          icon: "",
-          title: "Revoke"
-        }
-      }
-    ]
+    values: []
   };
   var base_style14 = x`
     <style>
@@ -4034,11 +4334,48 @@
   var AccountLayout = class extends i4 {
     constructor() {
       super();
-      __publicField(this, "PopupController");
-      __publicField(this, "NotificationController");
-      __publicField(this, "AuthService");
+      this.disabledTableButtons = new Set([]);
+      this.button_callback = this.button_callback.bind(this);
+    }
+    firstUpdated(_changedProperties) {
+      if (this.APIService?.accounts && !this.AccountConsumer) {
+        this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
+      }
+    }
+    updated(_changedProperties) {
+      if (this.APIService?.accounts && !this.AccountConsumer) {
+        this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
+      }
+    }
+    async button_callback(gebruiker_id) {
+      await Wrap(this.disabledTableButtons, (set) => {
+        set.add(gebruiker_id);
+        this.requestUpdate();
+      }, (set) => {
+        set.delete(gebruiker_id);
+        this.requestUpdate();
+      }, async (id) => {
+        await new LogAllOut(this.PopupController, this.APIService, this.NotificationController, id).start();
+      }, gebruiker_id);
     }
     render() {
+      const accountsState = Object.values(this.APIService?.accounts.value);
+      const passable = accountsState.map((value) => ({
+        gebruiker: value.naam,
+        email: value.email,
+        sessies: value.sessies,
+        beheer: {
+          disabled: this.disabledTableButtons.has(value.gebruiker_id),
+          type: "Red",
+          title: "Log gebruiker uit",
+          icon: "",
+          callback: (e10) => {
+            return this.button_callback(value.gebruiker_id);
+          }
+        }
+      }));
+      console.log(passable);
+      const dynamicSheet = Object.assign({}, sheet3, {values: Object.values(passable)});
       return x`
             ${base_style14}
             <div class="inner">
@@ -4055,7 +4392,7 @@
                     </md-button>
                 </gl-surface>
                 <gl-surface width="700px">
-                    <adv-table .table=${sheet3}>
+                    <adv-table .table=${dynamicSheet}>
 
                     </adv-table>
                 </gl-surface>
@@ -4073,6 +4410,12 @@
   __decorate([
     c7({context: authContext})
   ], AccountLayout.prototype, "AuthService", 2);
+  __decorate([
+    c7({context: apiContext})
+  ], AccountLayout.prototype, "APIService", 2);
+  __decorate([
+    n4({attribute: false})
+  ], AccountLayout.prototype, "disabledTableButtons", 2);
   AccountLayout = __decorate([
     t3("ly-account")
   ], AccountLayout);
@@ -4345,17 +4688,11 @@
     </style>    
 `;
   var AuthLayout = class extends i4 {
+    firstUpdated() {
+      this.popupRef = this.shadowRoot?.querySelector("gl-popup-surface");
+    }
     constructor() {
       super();
-      __publicField(this, "AuthService");
-      __publicField(this, "NotificationController");
-      __publicField(this, "invalid_state");
-      __publicField(this, "current_username_input");
-      __publicField(this, "current_password_input");
-      __publicField(this, "shape");
-      __publicField(this, "computedShape");
-      __publicField(this, "counter");
-      __publicField(this, "popupRef");
       this.invalid_state = false;
       this.counter = 0;
       this.button_callback = this.button_callback.bind(this);
@@ -4379,9 +4716,6 @@
           }
         ]
       };
-    }
-    firstUpdated() {
-      this.popupRef = this.shadowRoot?.querySelector("gl-popup-surface");
     }
     async button_callback(e10) {
       const newShape = {

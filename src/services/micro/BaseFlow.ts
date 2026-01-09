@@ -1,3 +1,3 @@
 export abstract class BaseFlow {
-    abstract start(e: any): void;
+    abstract start(...e: any[]): void;
 }

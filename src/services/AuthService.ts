@@ -41,7 +41,7 @@ export class AuthService {
                 wachtwoord: password
             }
         })
-        if (typeof res === "number") {
+        if (res.success === false) {
             this.host.notificationController.value.notify({
                 style: 'red',
                 description: 'Incorrect username or password.'
@@ -49,7 +49,11 @@ export class AuthService {
             return Result.Fail
         }
         this.authenticated = true;
-        this.token = res['token'];
+        this.token = res.data['token'];
+
+        // start authentication in paralell
+        this.api.initial_population()
+
         return Result.Success;
     }
 

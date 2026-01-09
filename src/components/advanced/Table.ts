@@ -149,6 +149,9 @@ export class Table extends LitElement {
     }
 
     render() {
+        const headers = Object.entries(this.table?.headers ?? {});
+        const values = Array.isArray(this.table?.values) ? this.table!.values : [];
+        if (values.length === 0) return html`<div style="vertical-align: center; justify-content: middle;"><md-richtext>Awaiting data</md-richtext></div>`;
         return html`
             ${base_style}
             <table>
@@ -169,8 +172,7 @@ export class Table extends LitElement {
                             (key) => {
                                 const renderer_type = this.table.headers[key[0]].renderer
                                 const renderer = Renderers[renderer_type]
-                                console.log('render')
-                                return html`<td>${renderer.render(key[1])}</td>`
+                                return html`<td>${renderer.render(key[1] as never)}</td>` // we surpress this error because we know itll work anyway
                             }
                         )}
                         </tr>

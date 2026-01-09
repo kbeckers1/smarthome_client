@@ -97,16 +97,7 @@ export class NotificationController implements ReactiveController {
                                 (wrapper) => wrapper.id,
                                 (wrapper) => html`
                                     <gl-notification
-                                    ${animate({
-                                        in: [
-                                        { opacity: 0, transform: 'translateY(-20px)' },
-                                        { opacity: 1, transform: 'translateY(0)' }
-                                        ],
-                                        out: [
-                                        { opacity: 1, transform: 'translateY(0)' },
-                                        { opacity: 0, transform: 'translateY(-20px)' }
-                                        ],
-                                    })}
+                                    ${animate()}
                                     .shape=${wrapper.notification}
                                     ></gl-notification>
                                 `

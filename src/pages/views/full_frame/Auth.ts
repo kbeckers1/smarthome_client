@@ -100,7 +100,6 @@ export class AuthLayout extends LitElement {
         this.shape = newShape;
         this.counter += 1;
 
-        // Nuclear option: force complete re-render
         // https://github.com/lit/lit/issues/4651
         this.requestUpdate();
         this.popupRef?.requestUpdate()
@@ -130,7 +129,6 @@ export class AuthLayout extends LitElement {
             this.invalid_state = true;
         }
 
-        // Nuclear option: force complete re-render
         this.requestUpdate();
         this.popupRef?.requestUpdate()
     }
@@ -175,7 +173,7 @@ export class AuthLayout extends LitElement {
             ${base_style}
             <div class="inner">
                 <div class="wrapper">
-                    <gl-popup-surface .counter="${this.counter}" .shape=${live(this.computedShape)}></gl-popup-surface>    
+                    <gl-popup-surface .counter="${this.counter}" .shape=${live(this.computedShape as unknown as any)}></gl-popup-surface>    
                 </div>
             </div>
         `;
