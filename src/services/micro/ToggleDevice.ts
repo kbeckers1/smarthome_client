@@ -34,7 +34,7 @@ export class ToggleDevice extends BaseFlow {
             const devices = this.api.devices.value;
             const current = devices[id];
             if (current) {
-                const updated = { ...current, actief: target_state };
+                const updated = { ...current, actief: target_state, huidig_verbruik: now_active ? 0.00 : 2.00 };
                 this.api.devices.set({ [id]: updated });
             }
 

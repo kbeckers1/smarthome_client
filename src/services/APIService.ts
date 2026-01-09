@@ -48,8 +48,14 @@ export class APIService implements ReactiveController {
     host: Dashboard;
     timeout: number;
 
-    devices: Store<Record<number, Device>> = new Store({});
+    devices:  Store<Record<number, Device>>  = new Store({});
     accounts: Store<Record<number, Account>> = new Store({});
+    me:       Store<Record<number, Account>> = new Store({});
+    innerTemp: Store<number> = new Store(0);
+    outerTemp: Store<number> = new Store(0);
+    humidity: Store<number> = new Store(0);
+    fetchTime!: Date;
+
 
     constructor(host: Dashboard, timeout = 5000) {
         (this.host = host).addController(this);
@@ -65,7 +71,6 @@ export class APIService implements ReactiveController {
     async request<T = any>(req: Request): Promise<ApiResponse<T>> {
         try {
             // Build URL with query params
-            console.log(this.host.authService.value.token)
             const params = req.Params ? req.Params : new URLSearchParams()
             params.append('token', this.host.authService.value.token)
             const url =  `${req.Url}?${params.toString()}`
@@ -168,9 +173,11 @@ export class APIService implements ReactiveController {
         // fetch & commit data for each of our buckets/stores in paralell.
         await Promise.all([
             this.fetch_devices(),
-            this.fetch_accounts()
+            this.fetch_accounts(),
+            this.fetch_me(),
+            this.fetch_weather_data()
         ])
-        console.log('Fetched')
+        console.log('Data retrieval finished')
     }
 
     async fetch_devices() {
@@ -220,6 +227,29 @@ export class APIService implements ReactiveController {
         return Result.Success;
     }
 
+    async fetch_me() {
+        const res = await this.request<Account>({
+            Url: "http://localhost:5000/api/me",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+        })
+        if (!res.success) {
+            this.host.notificationController.value.notify({
+                style: 'red',
+                description: 'Error fetching data'
+            })
+            return Result.Fail
+        }
+
+        const d = res.data as Account | undefined
+        if (!d) return Result.Fail
+
+        // store under the user's id
+        this.me.set({ 0: d } as Record<number, Account>)
+        return Result.Success
+    }
+
     async revoke_account_access(id: number) {
         const req: Request = {
             Authorization: true,
@@ -231,11 +261,13 @@ export class APIService implements ReactiveController {
             })
         }
         const res = await this.request(req)
-        console.log(res)
         if (res.success) {
             // Mutate data store
             // mutate device store: update single device by id
-            await this.fetch_accounts()
+            await Promise.all([
+                this.fetch_accounts(),
+                this.fetch_me()
+            ])
             return Result.Success
         } else {
             return Result.Fail
@@ -267,6 +299,23 @@ export class APIService implements ReactiveController {
         } else {
             return Result.Fail
         }
+    }
+
+    async fetch_weather_data() {
+        const current_data = await this.request<any>({
+            Url: "https://api.open-meteo.com/v1/forecast",
+            Catch: false,
+            Type: "GET",
+            Authorization: false,
+            Params: new URLSearchParams({
+                latitude: '52.0908',
+                longitude: '5.1222',
+                current: 'temperature_2m,relative_humidity_2m'
+            })
+        });
+        const data = (current_data?.data ?? {})["current"];
+        this.outerTemp.set(data['temperature_2m']);
+        this.humidity.set(data['relative_humidity_2m']);
     }
 }
 

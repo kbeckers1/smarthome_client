@@ -2710,7 +2710,13 @@
     },
     [0]: {
       render: (value) => {
-        return x`${value}`;
+        let newVal;
+        if (typeof value === "number") {
+          newVal = value.toFixed(2);
+        } else {
+          newVal = value;
+        }
+        return x`${newVal}`;
       }
     },
     [1]: {
@@ -3437,7 +3443,11 @@
       return this._state;
     }
     set(patch) {
-      this._state = {...this._state, ...patch};
+      if (typeof this._state === "object" && this._state !== null && typeof patch === "object" && patch !== null) {
+        this._state = {...this._state, ...patch};
+      } else {
+        this._state = patch;
+      }
       this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
     }
     subscribe(callback) {
@@ -3531,6 +3541,10 @@
     constructor(host, timeout = 5e3) {
       this.devices = new Store({});
       this.accounts = new Store({});
+      this.me = new Store({});
+      this.innerTemp = new Store(0);
+      this.outerTemp = new Store(0);
+      this.humidity = new Store(0);
       (this.host = host).addController(this);
       this.timeout = timeout;
     }
@@ -3540,7 +3554,6 @@
     }
     async request(req) {
       try {
-        console.log(this.host.authService.value.token);
         const params = req.Params ? req.Params : new URLSearchParams();
         params.append("token", this.host.authService.value.token);
         const url = `${req.Url}?${params.toString()}`;
@@ -3626,9 +3639,11 @@
     async initial_population() {
       await Promise.all([
         this.fetch_devices(),
-        this.fetch_accounts()
+        this.fetch_accounts(),
+        this.fetch_me(),
+        this.fetch_weather_data()
       ]);
-      console.log("Fetched");
+      console.log("Data retrieval finished");
     }
     async fetch_devices() {
       const res = await this.request({
@@ -3669,6 +3684,26 @@
       this.accounts.set(map);
       return Result.Success;
     }
+    async fetch_me() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/me",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const d4 = res.data;
+      if (!d4)
+        return Result.Fail;
+      this.me.set({0: d4});
+      return Result.Success;
+    }
     async revoke_account_access(id) {
       const req = {
         Authorization: true,
@@ -3680,9 +3715,11 @@
         })
       };
       const res = await this.request(req);
-      console.log(res);
       if (res.success) {
-        await this.fetch_accounts();
+        await Promise.all([
+          this.fetch_accounts(),
+          this.fetch_me()
+        ]);
         return Result.Success;
       } else {
         return Result.Fail;
@@ -3705,6 +3742,22 @@
       } else {
         return Result.Fail;
       }
+    }
+    async fetch_weather_data() {
+      const current_data = await this.request({
+        Url: "https://api.open-meteo.com/v1/forecast",
+        Catch: false,
+        Type: "GET",
+        Authorization: false,
+        Params: new URLSearchParams({
+          latitude: "52.0908",
+          longitude: "5.1222",
+          current: "temperature_2m,relative_humidity_2m"
+        })
+      });
+      const data = (current_data?.data ?? {})["current"];
+      this.outerTemp.set(data["temperature_2m"]);
+      this.humidity.set(data["relative_humidity_2m"]);
     }
   };
   var apiContext = n10("apiService");
@@ -3918,7 +3971,7 @@
         const devices = this.api.devices.value;
         const current = devices[id];
         if (current) {
-          const updated = {...current, actief: target_state};
+          const updated = {...current, actief: target_state, huidig_verbruik: now_active ? 0 : 2};
           this.api.devices.set({[id]: updated});
         }
         this.controller.notify(this.success_notification);
@@ -4126,7 +4179,7 @@
                     <gl-surface style="gap: 15px; overflow: hidden;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
                             <md-richtext>Luchtvochtigheid</md-richtext>
-                            <md-title>67%</md-title>
+                            <md-title>${this.APIService.humidity.value}%</md-title>
                             <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
@@ -4136,7 +4189,7 @@
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
                             <md-richtext>Energieverbruik</md-richtext>
-                            <md-title>2.5 kW</md-title>
+                            <md-title>${Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)}</md-title>
                             <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
                         </gl-data-tile>
                     </gl-surface>
@@ -4231,7 +4284,7 @@
           icon: "",
           content: "Deze gebruiker uitloggen?"
         },
-        body: u5`<md-richtext>Dit zal de sessies van deze gebruikers direct stopzetten.</md-richtext>`,
+        body: u5`<md-richtext>Dit zal de sessies van deze gebruikers direct stopzetten (m.u.v. de huidige sessie op dit apparaat).</md-richtext>`,
         button_bar: [
           {
             icon: "/public/home.svg",
@@ -4329,6 +4382,27 @@
         .container > * + * {
             border-top: solid 1px #a2a2a2;
         }  
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .detail_box {
+            grid-column-start: 1;
+            grid-column-end: 2;
+            grid-row-start: 1;
+            grid-row-end: 5;
+        }
+        .table_box {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 1;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
     </style>  
 `;
   var AccountLayout = class extends i4 {
@@ -4341,10 +4415,16 @@
       if (this.APIService?.accounts && !this.AccountConsumer) {
         this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
       }
+      if (this.APIService?.me && !this.MeConsumer) {
+        this.MeConsumer = new StoreConsumer(this, this.APIService.me);
+      }
     }
     updated(_changedProperties) {
       if (this.APIService?.accounts && !this.AccountConsumer) {
         this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
+      }
+      if (this.APIService?.me && !this.MeConsumer) {
+        this.MeConsumer = new StoreConsumer(this, this.APIService.me);
       }
     }
     async button_callback(gebruiker_id) {
@@ -4374,7 +4454,6 @@
           }
         }
       }));
-      console.log(passable);
       const dynamicSheet = Object.assign({}, sheet3, {values: Object.values(passable)});
       return x`
             ${base_style14}
@@ -4382,21 +4461,30 @@
                 <md-title>
                     Account
                 </md-title>
-                <gl-surface style="flex-direction: column;">
-                    <md-richtext>
-                        Log uit
-                    </md-richtext>
-                    <br/>
-                    <md-button .type=${Styles2.Red} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
-                        Log uit
-                    </md-button>
-                </gl-surface>
-                <gl-surface width="700px">
-                    <adv-table .table=${dynamicSheet}>
+                <div class="grid">
+                    <gl-surface style="flex-direction: column; gap: 5px;" class="detail_box" width="auto" height="fit-content">
+                        <md-title>
+                            Account
+                        </md-title>
+                        <md-richtext>Naam: ${this.APIService.me?.value[0]?.naam}</md-richtext>
+                        <md-richtext>Email: ${this.APIService.me?.value[0]?.email}</md-richtext>
+                        <md-richtext>Identificatienummer: ${this.APIService.me?.value[0]?.gebruiker_id}</md-richtext>
+                        <md-richtext>Actieve Sessies: ${this.APIService.me?.value[0]?.sessies}</md-richtext>
+                        <br/>
+                        <md-title>
+                            Log uit
+                        </md-title>
+                        <md-button .type=${Styles2.Red} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
+                            Log uit
+                        </md-button>
+                    </gl-surface>
+                    <gl-surface class="table_box" width="auto" height="auto">
+                        <adv-table .table=${dynamicSheet}>
 
-                    </adv-table>
-                </gl-surface>
-                <br/>
+                        </adv-table>
+                    </gl-surface>
+                    <br/>
+                </div>
             </div>
         `;
     }
@@ -4560,32 +4648,35 @@
                     <gl-surface style="gap: 15px;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile color="#e1b400" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Buitentemperatuur</md-richtext>
-                            <md-title>17 °C</md-title>
+                            <md-title>${this.APIService.outerTemp.value} °C</md-title>
                             <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile color="#005ec3" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Luchtvochtigheid</md-richtext>
-                            <md-title>67%</md-title>
+                            <md-title>${this.APIService.humidity.value}%</md-title>
                             <md-richtext style="color: #005ec3!important; text-size: 10px;" width="auto">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile color="#3f9062" style="flex: 1 1 auto;" width="auto">
-                            <md-richtext>Netwerk</md-richtext>
-                            <md-title>Online</md-title>
+                            <md-richtext>Tijd</md-richtext>
+                            <md-title>${new Date(Date.now()).toLocaleString("nl-NL", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })}</md-title>
                         </gl-data-tile>
                         <gl-data-tile color="#c30000" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Energieverbruik</md-richtext>
-                            <md-title>2.5 kW</md-title>
+                            <md-title>${Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)} kWh</md-title>
                             <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
                         </gl-data-tile>
-                    </gl-surface>
-                    <gl-surface width="auto" height="auto" class="controller_box">
-
                     </gl-surface>
                 </div>
             </div>
         `;
     }
   };
+  __decorate([
+    c7({context: apiContext})
+  ], PredictionLayout.prototype, "APIService", 2);
   PredictionLayout = __decorate([
     t3("ly-predictions")
   ], PredictionLayout);

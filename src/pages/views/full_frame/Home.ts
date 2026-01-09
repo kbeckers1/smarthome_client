@@ -246,7 +246,7 @@ export class HomeLayout extends LitElement {
                     <gl-surface style="gap: 15px; overflow: hidden;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
                             <md-richtext>Luchtvochtigheid</md-richtext>
-                            <md-title>67%</md-title>
+                            <md-title>${this.APIService.humidity.value}%</md-title>
                             <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
@@ -256,7 +256,9 @@ export class HomeLayout extends LitElement {
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
                             <md-richtext>Energieverbruik</md-richtext>
-                            <md-title>2.5 kW</md-title>
+                            <md-title>${
+                                Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)
+                            }</md-title>
                             <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
                         </gl-data-tile>
                     </gl-surface>

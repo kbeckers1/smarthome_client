@@ -55,6 +55,27 @@ const base_style = html`
         .container > * + * {
             border-top: solid 1px #a2a2a2;
         }  
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .detail_box {
+            grid-column-start: 1;
+            grid-column-end: 2;
+            grid-row-start: 1;
+            grid-row-end: 5;
+        }
+        .table_box {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 1;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
     </style>  
 `
 
@@ -74,6 +95,7 @@ export class AccountLayout extends LitElement {
     public APIService!: APIService;
 
     public AccountConsumer?: StoreConsumer;
+    public MeConsumer?: StoreConsumer;
     // optional unsubscribe/cleanup handle if StboreConsumer provides one
     @property({attribute: false }) disabledTableButtons: Set<number> = new Set([]);
 
@@ -87,12 +109,18 @@ export class AccountLayout extends LitElement {
         if (this.APIService?.accounts && !this.AccountConsumer) {
             this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
         }
+        if (this.APIService?.me && !this.MeConsumer) {
+            this.MeConsumer = new StoreConsumer(this, this.APIService.me);
+        }
     }
 
     updated(_changedProperties: PropertyValues): void {
         // Context services may arrive after first update; ensure consumer is created
         if (this.APIService?.accounts && !this.AccountConsumer) {
             this.AccountConsumer = new StoreConsumer(this, this.APIService.accounts);
+        }
+        if (this.APIService?.me && !this.MeConsumer) {
+            this.MeConsumer = new StoreConsumer(this, this.APIService.me);
         }
     }
 
@@ -129,7 +157,6 @@ export class AccountLayout extends LitElement {
             }
         }))
 
-        console.log(passable)
         // build our sheet
         const dynamicSheet = Object.assign({}, sheet, { values: Object.values(passable) });
 
@@ -139,21 +166,30 @@ export class AccountLayout extends LitElement {
                 <md-title>
                     Account
                 </md-title>
-                <gl-surface style="flex-direction: column;">
-                    <md-richtext>
-                        Log uit
-                    </md-richtext>
-                    <br/>
-                    <md-button .type=${Styles.Red} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
-                        Log uit
-                    </md-button>
-                </gl-surface>
-                <gl-surface width="700px">
-                    <adv-table .table=${dynamicSheet}>
+                <div class="grid">
+                    <gl-surface style="flex-direction: column; gap: 5px;" class="detail_box" width="auto" height="fit-content">
+                        <md-title>
+                            Account
+                        </md-title>
+                        <md-richtext>Naam: ${this.APIService.me?.value[0]?.naam}</md-richtext>
+                        <md-richtext>Email: ${this.APIService.me?.value[0]?.email}</md-richtext>
+                        <md-richtext>Identificatienummer: ${this.APIService.me?.value[0]?.gebruiker_id}</md-richtext>
+                        <md-richtext>Actieve Sessies: ${this.APIService.me?.value[0]?.sessies}</md-richtext>
+                        <br/>
+                        <md-title>
+                            Log uit
+                        </md-title>
+                        <md-button .type=${Styles.Red} .callback=${() => new LogOut(this.PopupController, this.AuthService).start()}>
+                            Log uit
+                        </md-button>
+                    </gl-surface>
+                    <gl-surface class="table_box" width="auto" height="auto">
+                        <adv-table .table=${dynamicSheet}>
 
-                    </adv-table>
-                </gl-surface>
-                <br/>
+                        </adv-table>
+                    </gl-surface>
+                    <br/>
+                </div>
             </div>
         `;
     }

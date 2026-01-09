@@ -34,8 +34,14 @@ export const Renderers: {
         }
     },
     [RenderNames.number]: {
-        render: (value) => {
-            return html`${value}`;
+        render: (value: number) => {
+            let newVal;
+            if (typeof value === "number") {
+                newVal = value.toFixed(2)
+            } else {
+                newVal = value
+            }
+            return html`${newVal}`;
         }
     },
     [RenderNames.boolean]: {

@@ -1,5 +1,7 @@
 import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import { apiContext, APIService } from '../../../services/APIService';
+import { consume } from '@lit/context';
 
 const base_style = html`
     <style>
@@ -50,6 +52,9 @@ const base_style = html`
 // WebComponent
 @customElement('ly-predictions')
 export class PredictionLayout extends LitElement {
+    @consume({context: apiContext})
+    public APIService!: APIService;
+
     constructor() {
         super();
     }
@@ -70,26 +75,28 @@ export class PredictionLayout extends LitElement {
                     <gl-surface style="gap: 15px;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile color="#e1b400" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Buitentemperatuur</md-richtext>
-                            <md-title>17 °C</md-title>
+                            <md-title>${this.APIService.outerTemp.value} °C</md-title>
                             <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile color="#005ec3" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Luchtvochtigheid</md-richtext>
-                            <md-title>67%</md-title>
+                            <md-title>${this.APIService.humidity.value}%</md-title>
                             <md-richtext style="color: #005ec3!important; text-size: 10px;" width="auto">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile color="#3f9062" style="flex: 1 1 auto;" width="auto">
-                            <md-richtext>Netwerk</md-richtext>
-                            <md-title>Online</md-title>
+                            <md-richtext>Tijd</md-richtext>
+                            <md-title>${new Date(Date.now()).toLocaleString("nl-NL", {
+                                hour: '2-digit',
+                                minute:'2-digit'
+                            })}</md-title>
                         </gl-data-tile>
                         <gl-data-tile color="#c30000" style="flex: 1 1 auto;" width="auto">
                             <md-richtext>Energieverbruik</md-richtext>
-                            <md-title>2.5 kW</md-title>
+                            <md-title>${
+                                Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)
+                            } kWh</md-title>
                             <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
                         </gl-data-tile>
-                    </gl-surface>
-                    <gl-surface width="auto" height="auto" class="controller_box">
-
                     </gl-surface>
                 </div>
             </div>

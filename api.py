@@ -57,6 +57,27 @@ def require_token(func):
         conn.close()
         return func(*args, **kwargs)
     return wrapper
+
+def get_user_from_token(token):
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            g.gebruiker_id
+        FROM sessies as s
+        RIGHT JOIN gebruiker as g
+        ON g.gebruiker_id = s.gebruiker_id
+        WHERE s.key = %s
+        GROUP BY g.gebruiker_id, s.key
+        LIMIT 1;
+    """, (str(token),))
+    
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    return row[0] if row else None
 # ============================
 # LOGIN (GEEN TOKEN NODIG)
 # ============================
@@ -175,6 +196,42 @@ def list_users():
             "sessies": r[3]
         } for r in data
     ])
+
+@app.route("/api/me", methods=["GET", "OPTIONS"])
+@require_token
+def list_me():
+    token = request.args.get("token")
+    user_id = get_user_from_token(token)
+    if user_id is None:
+        return jsonify({"error": "Ongeldige token"}), 403
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            g.gebruiker_id,
+            g.naam,
+            g.email,
+            count(s.key)
+        FROM gebruiker as g
+        LEFT JOIN sessies as s
+        ON g.gebruiker_id = s.gebruiker_id
+        WHERE g.gebruiker_id = %s
+        GROUP BY g.gebruiker_id
+        LIMIT 1;
+    """, (user_id,))
+    
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    r = data[0]
+    return jsonify({
+        "gebruiker_id": r[0],
+        "naam": r[1],
+        "email": r[2],
+        "sessies": r[3]
+    })
 
 # ============================
 # ✅ OMGEVING
@@ -397,20 +454,13 @@ def toggle_device():
     conn = connect_db()
     cur = conn.cursor()
 
-    # Haal huidig verbruik op (voor logging)
-    cur.execute("SELECT huidig_verbruik FROM apparaat WHERE apparaat_id = %s", (apparaat_id,))
-    row = cur.fetchone()
-    if not row:
-        cur.close()
-        conn.close()
-        return jsonify({"error": "Apparaat niet gevonden"}), 404
-
-    huidig_verbruik = row[0] if row[0] is not None else 0.0
+    huidig_verbruik = 2.0 if gewenste_status == True else 0.0
+    print(huidig_verbruik)
 
     # Update apparaat status/actief
     cur.execute(
-        "UPDATE apparaat SET actief = %s WHERE apparaat_id = %s",
-        (gewenste_status, apparaat_id),
+        "UPDATE apparaat SET actief = %s, huidig_verbruik = %s WHERE apparaat_id = %s",
+        (gewenste_status, huidig_verbruik, apparaat_id),
     )
 
     # Insert into apparaat_geschiedenis (tijd, actie, verbruikt, apparaat_id)

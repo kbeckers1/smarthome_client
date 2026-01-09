@@ -78,7 +78,7 @@ export class LogAllOut extends BaseFlow {
             icon: "",
             content: "Deze gebruiker uitloggen?"
         },
-        body: html`<md-richtext>Dit zal de sessies van deze gebruikers direct stopzetten.</md-richtext>`,
+        body: html`<md-richtext>Dit zal de sessies van deze gebruikers direct stopzetten (m.u.v. de huidige sessie op dit apparaat).</md-richtext>`,
         button_bar: [
             {
                 icon: "/public/home.svg",
