@@ -26,6 +26,7 @@ import './pages/views/full_frame/Layout'
 import './pages/views/full_frame/Predictions'
 import './pages/views/full_frame/Sensors'
 import './pages/views/full_frame/Auth'
+import './pages/views/full_frame/Zonnepanelen'
 
 const element = document.createElement('pg-dashboard')
 document.body.appendChild(element)

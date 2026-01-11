@@ -1522,12 +1522,13 @@
     1: {vanityName: "Apparaten", iconPath: "/public/devices.svg", pageSelector: "ly-devices", show: true},
     2: {vanityName: "Sensoren", iconPath: "/public/sensors.svg", pageSelector: "ly-sensors", show: true},
     3: {vanityName: "Weersvoorspelling", iconPath: "/public/weather.svg", pageSelector: "ly-predictions", show: true},
-    4: {vanityName: "Account", iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
-    5: {vanityName: "Auth", iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false}
+    4: {vanityName: "Zonnepaneel", iconPath: "/public/solar.svg", pageSelector: "ly-solar", show: true},
+    5: {vanityName: "Account", iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
+    6: {vanityName: "Auth", iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false}
   };
   var _Router = class {
     constructor() {
-      this.state = r9(5);
+      this.state = r9(6);
     }
     route(route) {
       this.state.set(route);
@@ -2420,9 +2421,9 @@
   ], TextField);
 
   // src/services/graph_renderers/ColumnRenderer.ts
-  function drawColumns(ctx, graph2, graphBox, x_range, y_range) {
-    for (let i9 = 0; i9 <= graph2.graph.length - 1; i9++) {
-      const column = graph2.graph[i9];
+  function drawColumns(ctx, graph3, graphBox, x_range, y_range) {
+    for (let i9 = 0; i9 <= graph3.graph.length - 1; i9++) {
+      const column = graph3.graph[i9];
       const start_x = column.x - column.width / 2;
       const end_x = column.x + column.width / 2;
       const start_y = column.y;
@@ -2432,18 +2433,18 @@
       const abs_end_x = end_x * (graphBox.width / x_entries) + graphBox.x;
       const abs_start_y = -1 * (start_y * (graphBox.height / (y_range.end - y_range.start)));
       const width = abs_end_x - abs_start_x;
-      ctx.fillStyle = graph2.color;
+      ctx.fillStyle = graph3.color;
       ctx.fillRect(abs_start_x, baseline_y, width, abs_start_y);
     }
     ;
   }
 
   // src/services/graph_renderers/LineRenderer.ts
-  function drawLine(ctx, graph2, graphBox, x_range, y_range) {
-    ctx.strokeStyle = graph2.color;
+  function drawLine(ctx, graph3, graphBox, x_range, y_range) {
+    ctx.strokeStyle = graph3.color;
     ctx.lineWidth = 5;
     ctx.beginPath();
-    const dataset = graph2.graph;
+    const dataset = graph3.graph;
     const x_entries = x_range.end - x_range.start;
     const y_entries = y_range.end - y_range.start;
     const transform_point = (point) => {
@@ -2490,15 +2491,15 @@
     }
     hostDisconnected() {
     }
-    setGraph(graph2) {
-      this.graphs = graph2?.graphs;
-      this.x_range = graph2?.x_range;
-      this.y_range = graph2?.y_range;
-      this.x_label = graph2?.x_label;
-      this.y_label = graph2?.y_label;
+    setGraph(graph3) {
+      this.graphs = graph3?.graphs;
+      this.x_range = graph3?.x_range;
+      this.y_range = graph3?.y_range;
+      this.x_label = graph3?.x_label;
+      this.y_label = graph3?.y_label;
     }
-    start(graph2) {
-      this.setGraph(graph2);
+    start(graph3) {
+      this.setGraph(graph3);
       this.context = this.host.canvas.getContext("2d");
       const ctx = this.context;
       const dpr = window.devicePixelRatio || 1;
@@ -2527,8 +2528,8 @@
         this.drawYAxis(ctx, this.graphBox.y, this.graphBox.height, this.y_range, this.y_label);
         this.drawXAxis(ctx, this.graphBox.x, this.graphBox.y, this.graphBox.width, this.graphBox.height, this.x_range, this.x_label);
       }
-      for (const graph2 of this?.graphs ?? []) {
-        GraphRenderers[graph2[1].type](ctx, graph2[1], this.graphBox, this.x_range, this.y_range);
+      for (const graph3 of this?.graphs ?? []) {
+        GraphRenderers[graph3[1].type](ctx, graph3[1], this.graphBox, this.x_range, this.y_range);
       }
     }
     drawGridLines(ctx, width, height, start_x, start_y, x_entries, y_entries) {
@@ -2853,202 +2854,6 @@
     t3("adv-table")
   ], Table);
 
-  // src/components/general/DeviceTile.ts
-  var DeviceTile = class extends i4 {
-    constructor() {
-      super();
-      this.disabled = false;
-      this.callback = () => {
-      };
-    }
-    isLamp(name) {
-      return name.toLowerCase().includes("lamp");
-    }
-    isServo(name) {
-      return name.toLowerCase().includes("servo");
-    }
-    render() {
-      if (!this.device)
-        return x``;
-      const name = this.device.naam ?? "";
-      const active = Boolean(this.device.actief);
-      let bg = "#ffffff";
-      let textColor = "#000000";
-      if (this.disabled) {
-        bg = "#dcdcdc";
-        textColor = "#666";
-      } else if (this.isLamp(name)) {
-        bg = active ? "#FFF5DE" : "#ffffff";
-        textColor = active ? "#fff" : "#000";
-      } else if (this.isServo(name)) {
-        bg = active ? "#E0FFE1" : "#c30000";
-        textColor = "#fff";
-      }
-      const buttonLabel = this.device.beheerd ? "Beheerd" : active ? "Uit" : "Aan";
-      return x`
-            <style>
-                :host { background: ${bg}; color: ${textColor}; position: relative; }
-            </style>
-            <div class="inner">
-                <div class="meta">
-                    <div>
-                        <div class="title">${this.device.naam}</div>
-                        <div class="sub">${this.device.kamer}</div>
-                    </div>
-                    <div class="sub">ID: ${this.device.apparaat_id}</div>
-                </div>
-
-                <div class="bottom">
-                    <div>
-                        <div class="energy">${Number(this.device.huidig_verbruik).toFixed(2)} W</div>
-                        <div class="sub">${this.device.actief ? "Actief" : "Inactief"}</div>
-                    </div>
-                    <div>
-                        <md-button
-                            .type=${Styles2.Primary}
-                            ?disabled=${this.device.beheerd || this.disabled}
-                            .callback=${() => this.callback(this.device.apparaat_id, this.device.actief)}
-                        >${buttonLabel}</md-button>
-                    </div>
-                </div>
-
-                ${n8(this.disabled, () => x`<div class="overlay">Bezig met schakelen...</div>`)}
-            </div>
-        `;
-    }
-  };
-  DeviceTile.styles = i`
-        :host {
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            border: solid 1px #a2a2a2;
-            color: black;
-            font-family: "Funnel Display", Helvetica, Arial;
-        }
-        .inner {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 12px;
-            height: 100%;
-            box-sizing: border-box;
-            justify-content: space-between;
-        }
-        .meta {
-            display:flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .title {
-            font-weight: 700;
-            font-size: 16px;
-        }
-        .sub {
-            font-size: 12px;
-            color: rgba(0,0,0,0.6);
-        }
-        .bottom {
-            display:flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .energy {
-            font-weight: 600;
-        }
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0.6);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size: 14px;
-            color: #666;
-        }
-    `;
-  __decorate([
-    n4({type: Object, attribute: false})
-  ], DeviceTile.prototype, "device", 2);
-  __decorate([
-    n4({type: Boolean})
-  ], DeviceTile.prototype, "disabled", 2);
-  __decorate([
-    n4({attribute: false})
-  ], DeviceTile.prototype, "callback", 2);
-  DeviceTile = __decorate([
-    t3("gl-device-tile")
-  ], DeviceTile);
-
-  // src/layouts/Split.ts
-  var SplitLayout = class extends i4 {
-    constructor() {
-      super();
-      this.orientation = "horizontal";
-      this.startSize = "20%";
-      this.endSize = "10%";
-    }
-    render() {
-      return x`
-            <style>
-                /* Flex directions */
-                :host([orientation="horizontal"]) {
-                  flex-direction: row;
-                }
-                :host([orientation="vertical"]) {
-                  flex-direction: column;
-                }
-                /* Width/height resetting */
-                :host([orientation="horizontal"]) ::slotted([slot="start"]) {
-                  width: ${this.startSize};
-                }
-                :host([orientation="horizontal"]) ::slotted([slot="end"]) {
-                  width: ${this.endSize};
-                }
-                :host([orientation="vertical"]) ::slotted([slot="start"]) {
-                  height: ${this.startSize};
-                }
-                :host([orientation="vertical"]) ::slotted([slot="end"]) {
-                  height: ${this.endSize};
-                }
-            </style>
-            <slot name="start"></slot>
-            <slot name="middle"></slot>
-            <slot name="end"></slot>
-        `;
-    }
-  };
-  SplitLayout.styles = i`
-        :host {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-        ::slotted(*) {
-            overflow: auto;
-            min-width: 0;
-            min-height: 0;
-            box-sizing: border-box;
-        }
-        ::slotted([slot="middle"]) {
-              flex: 1;
-        }
-    `;
-  __decorate([
-    n4({type: String, reflect: true})
-  ], SplitLayout.prototype, "orientation", 2);
-  __decorate([
-    n4({type: String, attribute: "start-size"})
-  ], SplitLayout.prototype, "startSize", 2);
-  __decorate([
-    n4({type: String, attribute: "end-size"})
-  ], SplitLayout.prototype, "endSize", 2);
-  SplitLayout = __decorate([
-    t3("split-layout")
-  ], SplitLayout);
-
   // node_modules/@lit/context/lib/context-request-event.js
   /**
    * @license
@@ -3206,6 +3011,697 @@
       });
     };
   }
+
+  // src/services/GlobalState.ts
+  var Store = class extends EventTarget {
+    constructor(initial) {
+      super();
+      this._state = initial;
+    }
+    get value() {
+      return this._state;
+    }
+    set(patch) {
+      if (Array.isArray(this._state) || Array.isArray(patch)) {
+        this._state = patch;
+        this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
+        return;
+      }
+      if (typeof this._state === "object" && this._state !== null && typeof patch === "object" && patch !== null) {
+        this._state = {...this._state, ...patch};
+      } else {
+        this._state = patch;
+      }
+      this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
+    }
+    subscribe(callback) {
+      const handler = (e10) => callback(e10.detail);
+      this.addEventListener("change", handler);
+      callback(this._state);
+      return () => this.removeEventListener("change", handler);
+    }
+  };
+  var globalState = new Store({});
+  var StoreConsumer = class {
+    constructor(host, store) {
+      this.host = host;
+      this.store = store;
+      this.host.addController(this);
+    }
+    hostConnected() {
+      this.unsub = this.store.subscribe(() => this.host.requestUpdate());
+    }
+    hostDisconnected() {
+      if (this.unsub)
+        this.unsub();
+    }
+    get state() {
+      return this.store.value;
+    }
+    set(updates) {
+      this.store.set(updates);
+    }
+  };
+
+  // src/services/AuthService.ts
+  var Result;
+  (function(Result3) {
+    Result3[Result3["Success"] = 0] = "Success";
+    Result3[Result3["Fail"] = 1] = "Fail";
+  })(Result || (Result = {}));
+  var AuthService = class {
+    constructor(host) {
+      this.host = host;
+      this.api = host.apiService.value;
+      this.authenticated = false;
+    }
+    async generate_token(username, password) {
+      const res = await this.api.request({
+        Url: "http://localhost:5000/api/login",
+        Catch: false,
+        Type: "POST",
+        Authorization: false,
+        Body: {
+          naam: username,
+          wachtwoord: password
+        }
+      });
+      if (res.success === false) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Incorrect username or password."
+        });
+        return 1;
+      }
+      this.authenticated = true;
+      this.token = res.data["token"];
+      this.api.initial_population();
+      return 0;
+    }
+    deauthenticate() {
+      const temp_token = this.token;
+      this.authenticated = false;
+      this.token = "";
+      this.host.notificationController.value.notify({
+        style: "default",
+        description: "Logged out"
+      });
+      Router.route(6);
+      const res = this.api.request({
+        Url: "http://localhost:5000/api/logout",
+        Catch: false,
+        Type: "POST",
+        Authorization: true,
+        Params: new URLSearchParams({
+          token: temp_token
+        })
+      });
+    }
+  };
+  var authContext = n10("authController");
+
+  // src/services/APIService.ts
+  var APIService = class {
+    constructor(host, timeout = 5e3) {
+      this.devices = new Store({});
+      this.accounts = new Store({});
+      this.me = new Store({});
+      this.innerTemp = new Store(0);
+      this.outerTemp = new Store(0);
+      this.humidity = new Store(0);
+      this.predictedTrend = new Store([]);
+      this.trendlineCoeffs = new Store(null);
+      this.deviceEnergy = new Store({});
+      this.overThreshold = false;
+      this.THRESHOLD_WATTS = 8.5;
+      (this.host = host).addController(this);
+      this.timeout = timeout;
+    }
+    hostConnected() {
+      this.devicesUnsub = this.devices.subscribe((state) => {
+        try {
+          const devices = state;
+          const total = Object.values(devices).reduce((s11, d4) => s11 + (Number(d4?.huidig_verbruik) || 0), 0);
+          console.log("updated");
+          if (total > this.THRESHOLD_WATTS && !this.overThreshold) {
+            console.log("h");
+            this.host.notificationController.value.notify({
+              style: "red",
+              title: "Hoog energieverbruik",
+              description: `Huidig verbruik ${total.toFixed(2)} kW \u2014 bovengrens ${this.THRESHOLD_WATTS.toFixed(2)} kW`
+            });
+            this.overThreshold = true;
+          } else if (total <= this.THRESHOLD_WATTS && this.overThreshold) {
+            this.overThreshold = false;
+          }
+        } catch (e10) {
+        }
+      });
+    }
+    hostDisconnected() {
+      if (this.devicesUnsub)
+        this.devicesUnsub();
+    }
+    async request(req) {
+      try {
+        const params = req.Params ? req.Params : new URLSearchParams();
+        params.append("token", this.host.authService.value.token);
+        const url = `${req.Url}?${params.toString()}`;
+        const headers = {};
+        if (req.Headers) {
+          req.Headers.forEach((value, key) => headers[key] = value);
+        }
+        let body;
+        if (req.Body != null && req.Type !== "GET") {
+          body = JSON.stringify(req.Body);
+          headers["Content-Type"] = headers["Content-Type"] || "application/json";
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        const response = await fetch(url, {
+          method: req.Type,
+          headers,
+          body,
+          signal: controller.signal,
+          credentials: req.Cookies ? "include" : "same-origin"
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          const text = await response.text().catch(() => "");
+          if (req.Catch === true) {
+            this.handleHttpError(response);
+          }
+          return {success: false, error_code: response.status, message: text};
+        }
+        const contentType = response.headers.get("Content-Type") || "";
+        if (contentType.includes("application/json")) {
+          const parsed = await response.json();
+          return {success: true, data: parsed};
+        } else {
+          const txt = await response.text();
+          return {success: true, data: txt};
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          this.host.notificationController.value.notify({
+            style: "red",
+            description: "Request timed out"
+          });
+          return {success: false, error_code: 418, message: "I'm a teapot"};
+        }
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Unknown network error"
+        });
+        return {success: false, error_code: 100, message: "Unknown network error"};
+      }
+    }
+    async handleHttpError(response) {
+      const text = await response.text().catch(() => "");
+      switch (response.status) {
+        case 401:
+          this.host.notificationController.value.notify({
+            style: "red",
+            description: "Session expired; please reauthenticate."
+          });
+          break;
+        case 403:
+          this.host.notificationController.value.notify({
+            style: "red",
+            description: "You are not allowed to access this resource."
+          });
+          break;
+        case 500:
+          this.host.notificationController.value.notify({
+            style: "red",
+            description: "Internal Server Error"
+          });
+          break;
+        default:
+          this.host.notificationController.value.notify({
+            style: "red",
+            description: `${response.status} Server Error`
+          });
+          break;
+      }
+      this.host.authService.value.deauthenticate();
+    }
+    async initial_population() {
+      await Promise.all([
+        this.fetch_devices(),
+        this.fetch_accounts(),
+        this.fetch_me(),
+        this.fetch_weather_data(),
+        this.fetch_trendline()
+      ]);
+      console.log("Data retrieval finished");
+    }
+    async fetch_trendline() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/predictions/trendline",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        console.warn("fetch_trendline failed", res.message);
+        return;
+      }
+      const data = res.data;
+      if (data && typeof data.slope === "number" && typeof data.offset === "number") {
+        this.trendlineCoeffs.set({slope: data.slope, offset: data.offset});
+        const feature = typeof data.feature === "string" ? data.feature : null;
+        if (feature === "Buitentemperatuur (C)") {
+          try {
+            const temps = await this.fetch_temperature_24h_hourly();
+            const temps15 = this.interpolateTo15Min(temps);
+            const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
+            this.predictedTrend.set(predicted);
+          } catch (e10) {
+            console.warn("failed computing predicted trend from coeffs", e10);
+          }
+        } else {
+          console.warn("trendline feature is not temperature:", feature);
+          this.predictedTrend.set([]);
+        }
+        return;
+      }
+      console.warn("fetch_trendline: unknown response format", data);
+    }
+    async fetch_temperature_24h_hourly() {
+      const res = await this.request({
+        Url: "https://api.open-meteo.com/v1/forecast",
+        Catch: false,
+        Type: "GET",
+        Authorization: false,
+        Params: new URLSearchParams({
+          latitude: "52.0908",
+          longitude: "5.1222",
+          hourly: "temperature_2m",
+          forecast_days: "1",
+          timezone: "Europe/Amsterdam"
+        })
+      });
+      if (!res.success)
+        throw new Error("weather fetch failed");
+      const hourly = (res.data ?? {}).hourly ?? {};
+      const temps = hourly.temperature_2m ?? [];
+      if (!temps || temps.length < 2)
+        throw new Error("insufficient hourly temps");
+      if (temps.length < 25) {
+        const last = temps[temps.length - 1];
+        while (temps.length < 25)
+          temps.push(last);
+      }
+      return temps.slice(0, 25);
+    }
+    interpolateTo15Min(hourlyTemps) {
+      const result = [];
+      for (let i9 = 0; i9 < 96; i9++) {
+        const t8 = i9 / 4;
+        const lo = Math.floor(t8);
+        const hi = Math.min(lo + 1, hourlyTemps.length - 1);
+        const frac = t8 - lo;
+        const val = hourlyTemps[lo] * (1 - frac) + hourlyTemps[hi] * frac;
+        result.push(val);
+      }
+      return result;
+    }
+    applyTrendlineToTemps(temps15, slope, intercept) {
+      return temps15.map((t8) => slope * t8 + intercept);
+    }
+    async fetch_devices() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/devices",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const dataArray = res.data || [];
+      const data = dataArray.map(({status, ...rest}) => rest);
+      const map = Object.fromEntries(data.map((d4) => [d4.apparaat_id, d4]));
+      this.devices.set(map);
+      Object.keys(map).forEach((id) => {
+        const nid = Number(id);
+        this.fetch_device_energy(nid).catch(() => {
+        });
+      });
+      return Result.Success;
+    }
+    async fetch_device_energy(apparaat_id) {
+      try {
+        const end = new Date();
+        const start = new Date(end.getTime() - 24 * 60 * 60 * 1e3);
+        const res = await this.fetch_energy_intervals({apparaat_id, start: start.toISOString(), end: end.toISOString(), interval: 60});
+        if (!res)
+          return null;
+        const total = (res.buckets || []).reduce((s11, b4) => s11 + (b4.energy_kwh || 0), 0);
+        const tariff = 0.3;
+        const cost = total * tariff;
+        const prev = this.deviceEnergy.value || {};
+        this.deviceEnergy.set({...prev, [apparaat_id]: {totalEnergyKwh: total, totalCost: cost}});
+        return {totalEnergyKwh: total, totalCost: cost};
+      } catch (e10) {
+        return null;
+      }
+    }
+    async fetch_energy_intervals(params) {
+      const q = new URLSearchParams();
+      if (params.apparaat_id != null)
+        q.append("apparaat_id", String(params.apparaat_id));
+      if (params.start)
+        q.append("start", params.start);
+      if (params.end)
+        q.append("end", params.end);
+      if (params.interval)
+        q.append("interval", String(params.interval));
+      const res = await this.request({
+        Url: "http://localhost:5000/api/energy/intervals",
+        Catch: false,
+        Type: "GET",
+        Authorization: true,
+        Params: q
+      });
+      if (!res.success)
+        return null;
+      return res.data;
+    }
+    async fetch_accounts() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/users",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const dataArray = res.data ?? [];
+      const map = Object.fromEntries(dataArray.map((d4) => [d4.gebruiker_id, d4]));
+      this.accounts.set(map);
+      return Result.Success;
+    }
+    async fetch_me() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/me",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const d4 = res.data;
+      if (!d4)
+        return Result.Fail;
+      this.me.set({0: d4});
+      return Result.Success;
+    }
+    async revoke_account_access(id) {
+      const req = {
+        Authorization: true,
+        Catch: false,
+        Type: "POST",
+        Url: "http://localhost:5000/api/revoke",
+        Params: new URLSearchParams({
+          user_id: String(id)
+        })
+      };
+      const res = await this.request(req);
+      if (res.success) {
+        await Promise.all([
+          this.fetch_accounts(),
+          this.fetch_me()
+        ]);
+        return Result.Success;
+      } else {
+        return Result.Fail;
+      }
+    }
+    async toggle_device(id, target_state) {
+      const req = {
+        Authorization: true,
+        Catch: false,
+        Type: "POST",
+        Url: "http://localhost:5000/api/devices/toggle",
+        Body: {
+          apparaat_id: id,
+          gewenste_status: target_state
+        }
+      };
+      const res = await this.request(req);
+      if (res.success) {
+        return Result.Success;
+      } else {
+        return Result.Fail;
+      }
+    }
+    async fetch_weather_data() {
+      const current_data = await this.request({
+        Url: "https://api.open-meteo.com/v1/forecast",
+        Catch: false,
+        Type: "GET",
+        Authorization: false,
+        Params: new URLSearchParams({
+          latitude: "52.0908",
+          longitude: "5.1222",
+          current: "temperature_2m,relative_humidity_2m"
+        })
+      });
+      const data = (current_data?.data ?? {})["current"];
+      this.outerTemp.set(data["temperature_2m"]);
+      this.humidity.set(data["relative_humidity_2m"]);
+    }
+  };
+  var apiContext = n10("apiService");
+
+  // src/components/general/DeviceTile.ts
+  var DeviceTile = class extends i4 {
+    constructor() {
+      super();
+      this.disabled = false;
+      this.callback = () => {
+      };
+    }
+    firstUpdated(_changedProperties) {
+      if (this.APIService && !this.energyConsumer) {
+        this.energyConsumer = new StoreConsumer(this, this.APIService.deviceEnergy);
+      }
+    }
+    isLamp(name) {
+      return name.toLowerCase().includes("lamp");
+    }
+    isServo(name) {
+      return name.toLowerCase().includes("servo");
+    }
+    render() {
+      if (!this.device)
+        return x``;
+      const name = this.device.naam ?? "";
+      const active = Boolean(this.device.actief);
+      let bg = "#ffffff";
+      let textColor = "#000000";
+      if (this.disabled) {
+        bg = "#dcdcdc";
+        textColor = "#666";
+      } else if (this.isLamp(name)) {
+        bg = active ? "#FFF5DE" : "#ffffff";
+        textColor = active ? "#fff" : "#000";
+      } else if (this.isServo(name)) {
+        bg = active ? "#E0FFE1" : "#c30000";
+        textColor = "#fff";
+      }
+      const buttonLabel = this.device.beheerd ? "Beheerd" : active ? "Uit" : "Aan";
+      return x`
+            <style>
+                :host { background: ${bg}; color: ${textColor}; position: relative; }
+            </style>
+            <div class="inner">
+                <div class="meta">
+                    <div>
+                        <div class="title">${this.device.naam}</div>
+                        <div class="sub">${this.device.kamer}</div>
+                    </div>
+                    <div class="sub">ID: ${this.device.apparaat_id}</div>
+                </div>
+
+                <div class="bottom">
+                    <div>
+                        <div class="energy">${Number(this.device.huidig_verbruik).toFixed(2)} W</div>
+                        <div class="sub">${this.device.actief ? "Actief" : "Inactief"}</div>
+                        <div class="sub">24u: ${(() => {
+        try {
+          const store = this.energyConsumer?.state ?? {};
+          const s11 = this.device ? store[this.device.apparaat_id] ?? {totalEnergyKwh: 0, totalCost: 0} : {totalEnergyKwh: 0, totalCost: 0};
+          return `${s11.totalEnergyKwh.toFixed(3)} kWh \u2022 \u20AC${s11.totalCost.toFixed(2)}`;
+        } catch (e10) {
+          return "0.000 kWh \u2022 \u20AC0.00";
+        }
+      })()}</div>
+                    </div>
+                    <div>
+                        <md-button
+                            .type=${Styles2.Primary}
+                            ?disabled=${this.device.beheerd || this.disabled}
+                            .callback=${() => this.callback(this.device.apparaat_id, this.device.actief)}
+                        >${buttonLabel}</md-button>
+                    </div>
+                </div>
+
+                ${n8(this.disabled, () => x`<div class="overlay">Bezig met schakelen...</div>`)}
+            </div>
+        `;
+    }
+  };
+  DeviceTile.styles = i`
+        :host {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: solid 1px #a2a2a2;
+            color: black;
+            font-family: "Funnel Display", Helvetica, Arial;
+        }
+        .inner {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            height: 100%;
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+        .meta {
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .sub {
+            font-size: 12px;
+            color: rgba(0,0,0,0.6);
+        }
+        .bottom {
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .energy {
+            font-weight: 600;
+        }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.6);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size: 14px;
+            color: #666;
+        }
+    `;
+  __decorate([
+    n4({type: Object, attribute: false})
+  ], DeviceTile.prototype, "device", 2);
+  __decorate([
+    n4({type: Boolean})
+  ], DeviceTile.prototype, "disabled", 2);
+  __decorate([
+    n4({attribute: false})
+  ], DeviceTile.prototype, "callback", 2);
+  __decorate([
+    c7({context: apiContext})
+  ], DeviceTile.prototype, "APIService", 2);
+  DeviceTile = __decorate([
+    t3("gl-device-tile")
+  ], DeviceTile);
+
+  // src/layouts/Split.ts
+  var SplitLayout = class extends i4 {
+    constructor() {
+      super();
+      this.orientation = "horizontal";
+      this.startSize = "20%";
+      this.endSize = "10%";
+    }
+    render() {
+      return x`
+            <style>
+                /* Flex directions */
+                :host([orientation="horizontal"]) {
+                  flex-direction: row;
+                }
+                :host([orientation="vertical"]) {
+                  flex-direction: column;
+                }
+                /* Width/height resetting */
+                :host([orientation="horizontal"]) ::slotted([slot="start"]) {
+                  width: ${this.startSize};
+                }
+                :host([orientation="horizontal"]) ::slotted([slot="end"]) {
+                  width: ${this.endSize};
+                }
+                :host([orientation="vertical"]) ::slotted([slot="start"]) {
+                  height: ${this.startSize};
+                }
+                :host([orientation="vertical"]) ::slotted([slot="end"]) {
+                  height: ${this.endSize};
+                }
+            </style>
+            <slot name="start"></slot>
+            <slot name="middle"></slot>
+            <slot name="end"></slot>
+        `;
+    }
+  };
+  SplitLayout.styles = i`
+        :host {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        ::slotted(*) {
+            overflow: auto;
+            min-width: 0;
+            min-height: 0;
+            box-sizing: border-box;
+        }
+        ::slotted([slot="middle"]) {
+              flex: 1;
+        }
+    `;
+  __decorate([
+    n4({type: String, reflect: true})
+  ], SplitLayout.prototype, "orientation", 2);
+  __decorate([
+    n4({type: String, attribute: "start-size"})
+  ], SplitLayout.prototype, "startSize", 2);
+  __decorate([
+    n4({type: String, attribute: "end-size"})
+  ], SplitLayout.prototype, "endSize", 2);
+  SplitLayout = __decorate([
+    t3("split-layout")
+  ], SplitLayout);
 
   // src/services/PopupController.ts
   var PopupController = class {
@@ -3578,417 +4074,6 @@
   };
   var notificationContext = n10("notificationController");
 
-  // src/services/GlobalState.ts
-  var Store = class extends EventTarget {
-    constructor(initial) {
-      super();
-      this._state = initial;
-    }
-    get value() {
-      return this._state;
-    }
-    set(patch) {
-      if (Array.isArray(this._state) || Array.isArray(patch)) {
-        this._state = patch;
-        this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
-        return;
-      }
-      if (typeof this._state === "object" && this._state !== null && typeof patch === "object" && patch !== null) {
-        this._state = {...this._state, ...patch};
-      } else {
-        this._state = patch;
-      }
-      this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
-    }
-    subscribe(callback) {
-      const handler = (e10) => callback(e10.detail);
-      this.addEventListener("change", handler);
-      callback(this._state);
-      return () => this.removeEventListener("change", handler);
-    }
-  };
-  var globalState = new Store({});
-  var StoreConsumer = class {
-    constructor(host, store) {
-      this.host = host;
-      this.store = store;
-      this.host.addController(this);
-    }
-    hostConnected() {
-      this.unsub = this.store.subscribe(() => this.host.requestUpdate());
-    }
-    hostDisconnected() {
-      if (this.unsub)
-        this.unsub();
-    }
-    get state() {
-      return this.store.value;
-    }
-    set(updates) {
-      this.store.set(updates);
-    }
-  };
-
-  // src/services/AuthService.ts
-  var Result;
-  (function(Result3) {
-    Result3[Result3["Success"] = 0] = "Success";
-    Result3[Result3["Fail"] = 1] = "Fail";
-  })(Result || (Result = {}));
-  var AuthService = class {
-    constructor(host) {
-      this.host = host;
-      this.api = host.apiService.value;
-      this.authenticated = false;
-    }
-    async generate_token(username, password) {
-      const res = await this.api.request({
-        Url: "http://localhost:5000/api/login",
-        Catch: false,
-        Type: "POST",
-        Authorization: false,
-        Body: {
-          naam: username,
-          wachtwoord: password
-        }
-      });
-      if (res.success === false) {
-        this.host.notificationController.value.notify({
-          style: "red",
-          description: "Incorrect username or password."
-        });
-        return 1;
-      }
-      this.authenticated = true;
-      this.token = res.data["token"];
-      this.api.initial_population();
-      return 0;
-    }
-    deauthenticate() {
-      const temp_token = this.token;
-      this.authenticated = false;
-      this.token = "";
-      this.host.notificationController.value.notify({
-        style: "default",
-        description: "Logged out"
-      });
-      Router.route(5);
-      const res = this.api.request({
-        Url: "http://localhost:5000/api/logout",
-        Catch: false,
-        Type: "POST",
-        Authorization: true,
-        Params: new URLSearchParams({
-          token: temp_token
-        })
-      });
-    }
-  };
-  var authContext = n10("authController");
-
-  // src/services/APIService.ts
-  var APIService = class {
-    constructor(host, timeout = 5e3) {
-      this.devices = new Store({});
-      this.accounts = new Store({});
-      this.me = new Store({});
-      this.innerTemp = new Store(0);
-      this.outerTemp = new Store(0);
-      this.humidity = new Store(0);
-      this.predictedTrend = new Store([]);
-      this.trendlineCoeffs = new Store(null);
-      (this.host = host).addController(this);
-      this.timeout = timeout;
-    }
-    hostConnected() {
-    }
-    hostDisconnected() {
-    }
-    async request(req) {
-      try {
-        const params = req.Params ? req.Params : new URLSearchParams();
-        params.append("token", this.host.authService.value.token);
-        const url = `${req.Url}?${params.toString()}`;
-        const headers = {};
-        if (req.Headers) {
-          req.Headers.forEach((value, key) => headers[key] = value);
-        }
-        let body;
-        if (req.Body != null && req.Type !== "GET") {
-          body = JSON.stringify(req.Body);
-          headers["Content-Type"] = headers["Content-Type"] || "application/json";
-        }
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-        const response = await fetch(url, {
-          method: req.Type,
-          headers,
-          body,
-          signal: controller.signal,
-          credentials: req.Cookies ? "include" : "same-origin"
-        });
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          const text = await response.text().catch(() => "");
-          if (req.Catch === true) {
-            this.handleHttpError(response);
-          }
-          return {success: false, error_code: response.status, message: text};
-        }
-        const contentType = response.headers.get("Content-Type") || "";
-        if (contentType.includes("application/json")) {
-          const parsed = await response.json();
-          return {success: true, data: parsed};
-        } else {
-          const txt = await response.text();
-          return {success: true, data: txt};
-        }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          this.host.notificationController.value.notify({
-            style: "red",
-            description: "Request timed out"
-          });
-          return {success: false, error_code: 418, message: "I'm a teapot"};
-        }
-        this.host.notificationController.value.notify({
-          style: "red",
-          description: "Unknown network error"
-        });
-        return {success: false, error_code: 100, message: "Unknown network error"};
-      }
-    }
-    async handleHttpError(response) {
-      const text = await response.text().catch(() => "");
-      switch (response.status) {
-        case 401:
-          this.host.notificationController.value.notify({
-            style: "red",
-            description: "Session expired; please reauthenticate."
-          });
-          break;
-        case 403:
-          this.host.notificationController.value.notify({
-            style: "red",
-            description: "You are not allowed to access this resource."
-          });
-          break;
-        case 500:
-          this.host.notificationController.value.notify({
-            style: "red",
-            description: "Internal Server Error"
-          });
-          break;
-        default:
-          this.host.notificationController.value.notify({
-            style: "red",
-            description: `${response.status} Server Error`
-          });
-          break;
-      }
-      this.host.authService.value.deauthenticate();
-    }
-    async initial_population() {
-      await Promise.all([
-        this.fetch_devices(),
-        this.fetch_accounts(),
-        this.fetch_me(),
-        this.fetch_weather_data(),
-        this.fetch_trendline()
-      ]);
-      console.log("Data retrieval finished");
-    }
-    async fetch_trendline() {
-      const res = await this.request({
-        Url: "http://localhost:5000/api/predictions/trendline",
-        Catch: false,
-        Type: "GET",
-        Authorization: true
-      });
-      if (!res.success) {
-        console.warn("fetch_trendline failed", res.message);
-        return;
-      }
-      const data = res.data;
-      if (data && typeof data.slope === "number" && typeof data.offset === "number") {
-        this.trendlineCoeffs.set({slope: data.slope, offset: data.offset});
-        const feature = typeof data.feature === "string" ? data.feature : null;
-        if (feature === "Buitentemperatuur (C)") {
-          try {
-            const temps = await this.fetch_temperature_24h_hourly();
-            const temps15 = this.interpolateTo15Min(temps);
-            const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
-            this.predictedTrend.set(predicted);
-          } catch (e10) {
-            console.warn("failed computing predicted trend from coeffs", e10);
-          }
-        } else {
-          console.warn("trendline feature is not temperature:", feature);
-          this.predictedTrend.set([]);
-        }
-        return;
-      }
-      console.warn("fetch_trendline: unknown response format", data);
-    }
-    async fetch_temperature_24h_hourly() {
-      const res = await this.request({
-        Url: "https://api.open-meteo.com/v1/forecast",
-        Catch: false,
-        Type: "GET",
-        Authorization: false,
-        Params: new URLSearchParams({
-          latitude: "52.0908",
-          longitude: "5.1222",
-          hourly: "temperature_2m",
-          forecast_days: "1",
-          timezone: "Europe/Amsterdam"
-        })
-      });
-      if (!res.success)
-        throw new Error("weather fetch failed");
-      const hourly = (res.data ?? {}).hourly ?? {};
-      const temps = hourly.temperature_2m ?? [];
-      if (!temps || temps.length < 2)
-        throw new Error("insufficient hourly temps");
-      if (temps.length < 25) {
-        const last = temps[temps.length - 1];
-        while (temps.length < 25)
-          temps.push(last);
-      }
-      return temps.slice(0, 25);
-    }
-    interpolateTo15Min(hourlyTemps) {
-      const result = [];
-      for (let i9 = 0; i9 < 96; i9++) {
-        const t8 = i9 / 4;
-        const lo = Math.floor(t8);
-        const hi = Math.min(lo + 1, hourlyTemps.length - 1);
-        const frac = t8 - lo;
-        const val = hourlyTemps[lo] * (1 - frac) + hourlyTemps[hi] * frac;
-        result.push(val);
-      }
-      return result;
-    }
-    applyTrendlineToTemps(temps15, slope, intercept) {
-      return temps15.map((t8) => slope * t8 + intercept);
-    }
-    async fetch_devices() {
-      const res = await this.request({
-        Url: "http://localhost:5000/api/devices",
-        Catch: false,
-        Type: "GET",
-        Authorization: true
-      });
-      if (!res.success) {
-        this.host.notificationController.value.notify({
-          style: "red",
-          description: "Error fetching data"
-        });
-        return Result.Fail;
-      }
-      const dataArray = res.data || [];
-      const data = dataArray.map(({status, ...rest}) => rest);
-      const map = Object.fromEntries(data.map((d4) => [d4.apparaat_id, d4]));
-      this.devices.set(map);
-      return Result.Success;
-    }
-    async fetch_accounts() {
-      const res = await this.request({
-        Url: "http://localhost:5000/api/users",
-        Catch: false,
-        Type: "GET",
-        Authorization: true
-      });
-      if (!res.success) {
-        this.host.notificationController.value.notify({
-          style: "red",
-          description: "Error fetching data"
-        });
-        return Result.Fail;
-      }
-      const dataArray = res.data ?? [];
-      const map = Object.fromEntries(dataArray.map((d4) => [d4.gebruiker_id, d4]));
-      this.accounts.set(map);
-      return Result.Success;
-    }
-    async fetch_me() {
-      const res = await this.request({
-        Url: "http://localhost:5000/api/me",
-        Catch: false,
-        Type: "GET",
-        Authorization: true
-      });
-      if (!res.success) {
-        this.host.notificationController.value.notify({
-          style: "red",
-          description: "Error fetching data"
-        });
-        return Result.Fail;
-      }
-      const d4 = res.data;
-      if (!d4)
-        return Result.Fail;
-      this.me.set({0: d4});
-      return Result.Success;
-    }
-    async revoke_account_access(id) {
-      const req = {
-        Authorization: true,
-        Catch: false,
-        Type: "POST",
-        Url: "http://localhost:5000/api/revoke",
-        Params: new URLSearchParams({
-          user_id: String(id)
-        })
-      };
-      const res = await this.request(req);
-      if (res.success) {
-        await Promise.all([
-          this.fetch_accounts(),
-          this.fetch_me()
-        ]);
-        return Result.Success;
-      } else {
-        return Result.Fail;
-      }
-    }
-    async toggle_device(id, target_state) {
-      const req = {
-        Authorization: true,
-        Catch: false,
-        Type: "POST",
-        Url: "http://localhost:5000/api/devices/toggle",
-        Body: {
-          apparaat_id: id,
-          gewenste_status: target_state
-        }
-      };
-      const res = await this.request(req);
-      if (res.success) {
-        return Result.Success;
-      } else {
-        return Result.Fail;
-      }
-    }
-    async fetch_weather_data() {
-      const current_data = await this.request({
-        Url: "https://api.open-meteo.com/v1/forecast",
-        Catch: false,
-        Type: "GET",
-        Authorization: false,
-        Params: new URLSearchParams({
-          latitude: "52.0908",
-          longitude: "5.1222",
-          current: "temperature_2m,relative_humidity_2m"
-        })
-      });
-      const data = (current_data?.data ?? {})["current"];
-      this.outerTemp.set(data["temperature_2m"]);
-      this.humidity.set(data["relative_humidity_2m"]);
-    }
-  };
-  var apiContext = n10("apiService");
-
   // src/pages/Dashboard.ts
   var base_style11 = u5`
     <style>
@@ -4125,17 +4210,18 @@
         return el;
       });
       let account_style = Styles.UNSELECTED;
-      if (selected2 == 4) {
+      if (selected2 == 5) {
         account_style = Styles.SELECTED;
       } else {
         if (selected2 in entries) {
           entries[selected2].type = Styles.SELECTED;
         }
       }
+      console.log(selected2);
       const account = document.createElement("menu-entry");
-      account.title = Routes[4].vanityName;
-      account.icon = Routes[4].iconPath;
-      account.entry = Number(4);
+      account.title = Routes[5].vanityName;
+      account.icon = Routes[5].iconPath;
+      account.entry = Number(5);
       account.type = account_style;
       return x`
             ${base_style12}
@@ -4417,7 +4503,7 @@
                         <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
                             <md-richtext>Energieverbruik</md-richtext>
                             <md-title>${Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)}</md-title>
-                            <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                            <md-richtext style="color: #c30000!important; text-size: 10px;">watt</md-richtext>
                         </gl-data-tile>
                     </gl-surface>
                     <gl-surface class="table_box" width="auto" height="auto">
@@ -5037,14 +5123,35 @@
             --border-width: 5px;
         }
         .inner {
-            display: flex;
             padding: 10px;
             padding-top: 0px;
             height: 100%;
-            width: 100%;
-            min-width: 0;
-            box-sizing: border-box;
+            width: calc(100% - 15px);
             overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .graph_box {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 4;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
+        .detail_box {
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 4;
         }
     </style>    
 `;
@@ -5059,6 +5166,9 @@
                 <md-title>
                     Sensoren
                 </md-title>
+                <div class="grid">
+                    
+                </div>
             </div>
         `;
     }
@@ -5256,6 +5366,192 @@
   AuthLayout = __decorate([
     t3("ly-auth")
   ], AuthLayout);
+
+  // src/pages/views/full_frame/Zonnepanelen.ts
+  var graph1 = {
+    type: GraphTypes.ColumnGraph,
+    color: "#e1b400",
+    graph: [
+      {x: 0.5, y: 1, width: 0.8},
+      {x: 1.5, y: 1.2, width: 0.8},
+      {x: 2.5, y: 1.2, width: 0.8},
+      {x: 3.5, y: 1.3, width: 0.8},
+      {x: 4.5, y: 1.4, width: 0.8},
+      {x: 5.5, y: 1.4, width: 0.8},
+      {x: 6.5, y: 1.4, width: 0.8},
+      {x: 7.5, y: 1.5, width: 0.8},
+      {x: 8.5, y: 1.5, width: 0.8},
+      {x: 9.5, y: 1.5, width: 0.8},
+      {x: 10.5, y: 1.5, width: 0.8},
+      {x: 11.5, y: 1.4, width: 0.8},
+      {x: 12.5, y: 1.4, width: 0.8},
+      {x: 13.5, y: 1.3, width: 0.8},
+      {x: 14.5, y: 1.4, width: 0.8},
+      {x: 15.5, y: 1.5, width: 0.8},
+      {x: 16.5, y: 1.7, width: 0.8},
+      {x: 17.5, y: 1.8, width: 0.8},
+      {x: 18.5, y: 1.9, width: 0.8},
+      {x: 19.5, y: 2, width: 0.8},
+      {x: 20.5, y: 1.7, width: 0.8},
+      {x: 21.5, y: 1.5, width: 0.8},
+      {x: 22.5, y: 1.3, width: 0.8},
+      {x: 23.5, y: 1.2, width: 0.8}
+    ]
+  };
+  var graph2 = {
+    type: GraphTypes.ColumnGraph,
+    color: "#005ec3",
+    graph: [
+      {x: 0.5, y: 0.2, width: 0.8},
+      {x: 1.5, y: 0.2, width: 0.8},
+      {x: 2.5, y: 0.2, width: 0.8},
+      {x: 3.5, y: 0.3, width: 0.8},
+      {x: 4.5, y: 0.4, width: 0.8},
+      {x: 5.5, y: 0.4, width: 0.8},
+      {x: 6.5, y: 0.4, width: 0.8},
+      {x: 7.5, y: 0.5, width: 0.8},
+      {x: 8.5, y: 0.6, width: 0.8},
+      {x: 9.5, y: 0.7, width: 0.8},
+      {x: 10.5, y: 0.8, width: 0.8},
+      {x: 11.5, y: 0.9, width: 0.8},
+      {x: 12.5, y: 1.3, width: 0.8},
+      {x: 13.5, y: 1.4, width: 0.8},
+      {x: 14.5, y: 1.5, width: 0.8},
+      {x: 15.5, y: 1.3, width: 0.8},
+      {x: 16.5, y: 1.1, width: 0.8},
+      {x: 17.5, y: 1, width: 0.8},
+      {x: 18.5, y: 0.9, width: 0.8},
+      {x: 19.5, y: 0.8, width: 0.8},
+      {x: 20.5, y: 0.7, width: 0.8},
+      {x: 21.5, y: 0.5, width: 0.8},
+      {x: 22.5, y: 0.3, width: 0.8},
+      {x: 23.5, y: 0.2, width: 0.8}
+    ]
+  };
+  var kwhGraph = {
+    x_range: {
+      start: 0,
+      end: 24,
+      step: 0.25
+    },
+    y_range: {
+      start: 0,
+      end: 5,
+      step: 1
+    },
+    x_label: "Tijd in uren (vandaag)",
+    y_label: "Energieverbruik & opwekking in kWh",
+    graphs: new Map([
+      [0, graph1],
+      [1, graph2]
+    ])
+  };
+  var base_style20 = x`
+    <style>
+        :root { 
+            --border-width: 5px;
+        }
+        .inner {
+            padding: 10px;
+            padding-top: 0px;
+            height: 100%;
+            width: calc(100% - 15px);
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
+        }
+        .content {
+            flex: 1 1 auto; /* take remaining space */
+            overflow: auto; /* scroll if needed */
+        }
+        .container > * + * {
+            border-top: solid 1px #a2a2a2;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            grid-auto-rows: 10%;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .graph_box {
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 4;
+            grid-row-end: 9;
+            flex-direction: column;
+        }
+        .detail_box {
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 4;
+        }
+    </style>    
+`;
+  var Zonnepanelen = class extends i4 {
+    constructor() {
+      super();
+      this.disabledTableButtons = new Set([]);
+    }
+    render() {
+      return x`
+            ${base_style20}
+            <div class="inner">
+                <md-title>
+                    Zonnepanelen
+                </md-title>
+                <div class="grid">
+                    <gl-surface style="gap: 15px; overflow: hidden;" class="detail_box" width="auto" height="auto">
+                        <gl-data-tile height="200px" color="#005ec3" style="flex: 1 1 auto;">
+                            <md-richtext>Energieopwek</md-richtext>
+                            <md-title>15.2 kW</md-title>
+                            <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
+                            <md-richtext>Energieverbruik vandaag</md-richtext>
+                            <md-title>${Object.entries(graph2.graph).reduce((acc, node) => acc + node[1].y, 0)}</md-title>
+                            <md-richtext style="color: #3f9062!important; text-size: 10px;">kWh</md-richtext>
+                        </gl-data-tile>
+                        <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
+                            <md-richtext>Energieverbruik</md-richtext>
+                            <md-title>${Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)}</md-title>
+                            <md-richtext style="color: #c30000!important; text-size: 10px;">watt</md-richtext>
+                        </gl-data-tile>
+                    </gl-surface>
+                    <gl-surface class="graph_box" width="auto" height="auto">
+                        <adv-graph .graph=${kwhGraph}>
+                        </adv-graph>
+                    </gl-surface>
+                </div>
+                <br/>
+            </div>
+    `;
+    }
+  };
+  __decorate([
+    n4({type: Object, attribute: false})
+  ], Zonnepanelen.prototype, "graph", 2);
+  __decorate([
+    c7({context: popupContext})
+  ], Zonnepanelen.prototype, "PopupController", 2);
+  __decorate([
+    c7({context: notificationContext})
+  ], Zonnepanelen.prototype, "NotificationController", 2);
+  __decorate([
+    c7({context: authContext})
+  ], Zonnepanelen.prototype, "AuthService", 2);
+  __decorate([
+    c7({context: apiContext})
+  ], Zonnepanelen.prototype, "APIService", 2);
+  __decorate([
+    n4({attribute: false})
+  ], Zonnepanelen.prototype, "disabledTableButtons", 2);
+  Zonnepanelen = __decorate([
+    t3("ly-solar")
+  ], Zonnepanelen);
 
   // src/main.ts
   var element = document.createElement("pg-dashboard");

@@ -56,7 +56,12 @@ export class APIService implements ReactiveController {
     humidity: Store<number> = new Store(0);
     predictedTrend: Store<number[]> = new Store([] as number[]);
     trendlineCoeffs: Store<{slope: number, offset: number} | null> = new Store(null);
+    // per-device aggregated energy + cost store: { [apparaat_id]: { totalEnergyKwh, totalCost } }
+    deviceEnergy: Store<Record<number, { totalEnergyKwh: number, totalCost: number }>> = new Store({});
     fetchTime!: Date;
+    private devicesUnsub?: () => void;
+    private overThreshold: boolean = false;
+    private readonly THRESHOLD_WATTS = 8.5;
 
 
     constructor(host: Dashboard, timeout = 5000) {
@@ -65,8 +70,33 @@ export class APIService implements ReactiveController {
     }
 
     // Binding to our host and our entry point to rendering. We dont really need any preparation work however: so we have empty shells to satisfy the Typescript compiler.
-    hostConnected() {}
-    hostDisconnected() {}
+    hostConnected() {
+        // subscribe to device store changes to monitor total watt usage
+        this.devicesUnsub = this.devices.subscribe((state) => {
+            try {
+                const devices = state as Record<number, Device>;
+                const total = Object.values(devices).reduce((s, d) => s + (Number((d as any)?.huidig_verbruik) || 0), 0);
+                console.log('updated')
+                if (total > this.THRESHOLD_WATTS && !this.overThreshold) {
+                    console.log('h')
+                    this.host.notificationController.value.notify({
+                        style: 'red',
+                        title: 'Hoog energieverbruik',
+                        description: `Huidig verbruik ${ (total).toFixed(2)} kW — bovengrens ${ (this.THRESHOLD_WATTS).toFixed(2)} kW`
+                    });
+                    this.overThreshold = true;
+                } else if (total <= this.THRESHOLD_WATTS && this.overThreshold) {
+                    this.overThreshold = false;
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+    }
+
+    hostDisconnected() {
+        if (this.devicesUnsub) this.devicesUnsub();
+    }
     
     // Wraps HTTPService, deals with errors and manages auth state.
     // Our T defines our expected data structure.
@@ -294,8 +324,51 @@ export class APIService implements ReactiveController {
         // convert array to id->device map for the Store
         const map = Object.fromEntries(data.map((d) => [d.apparaat_id, d] as [number, Omit<Device, "status">])) as Record<number, Omit<Device, "status">>;
         this.devices.set(map);
+        // fetch energy summary for each device asynchronously (non-blocking)
+        Object.keys(map).forEach(id => {
+            const nid = Number(id);
+            this.fetch_device_energy(nid).catch(() => {});
+        });
         // set here
         return Result.Success;
+    }
+
+    // Fetch energy for a single device and update the deviceEnergy store
+    async fetch_device_energy(apparaat_id: number) {
+        try {
+            const end = new Date();
+            const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+            const res = await this.fetch_energy_intervals({ apparaat_id, start: start.toISOString(), end: end.toISOString(), interval: 60 });
+            if (!res) return null;
+            const total = (res.buckets || []).reduce((s, b) => s + (b.energy_kwh || 0), 0);
+            const tariff = 0.30; // EUR / kWh; make configurable later
+            const cost = total * tariff;
+            const prev = this.deviceEnergy.value || {};
+            this.deviceEnergy.set({ ...(prev as any), [apparaat_id]: { totalEnergyKwh: total, totalCost: cost } });
+            return { totalEnergyKwh: total, totalCost: cost };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Fetch aggregated energy intervals for a device or whole system
+    async fetch_energy_intervals(params: { apparaat_id?: number, start?: string, end?: string, interval?: number }) {
+        const q = new URLSearchParams();
+        if (params.apparaat_id != null) q.append('apparaat_id', String(params.apparaat_id));
+        if (params.start) q.append('start', params.start);
+        if (params.end) q.append('end', params.end);
+        if (params.interval) q.append('interval', String(params.interval));
+
+        const res = await this.request<{ buckets: Array<{ start: string, end: string, energy_kwh: number, avg_kw?: number }> }>({
+            Url: "http://localhost:5000/api/energy/intervals",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+            Params: q
+        });
+
+        if (!res.success) return null;
+        return res.data as { buckets: Array<{ start: string, end: string, energy_kwh: number, avg_kw?: number }> };
     }
 
     async fetch_accounts() {

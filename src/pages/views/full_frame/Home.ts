@@ -259,7 +259,7 @@ export class HomeLayout extends LitElement {
                             <md-title>${
                                 Object.entries(this.APIService.devices.value).reduce((acc, device) => acc + Number(device[1].huidig_verbruik), 0).toFixed(2)
                             }</md-title>
-                            <md-richtext style="color: #c30000!important; text-size: 10px;">/ uur</md-richtext>
+                            <md-richtext style="color: #c30000!important; text-size: 10px;">watt</md-richtext>
                         </gl-data-tile>
                     </gl-surface>
                     <gl-surface class="table_box" width="auto" height="auto">

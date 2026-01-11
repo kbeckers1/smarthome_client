@@ -1,7 +1,9 @@
-import { html, css, LitElement, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { html, css, LitElement, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { Device } from '../../services/APIService';
+import { Device, APIService, apiContext } from '../../services/APIService';
+import { consume } from '@lit/context';
+import { StoreConsumer } from '../../services/GlobalState';
 import { Styles } from '../forms/Button';
 
 @customElement('gl-device-tile')
@@ -9,9 +11,18 @@ export class DeviceTile extends LitElement {
     @property({ type: Object, attribute: false }) device: Device | undefined;
     @property({ type: Boolean }) disabled: boolean = false;
     @property({ attribute: false }) callback: Function = () => {};
+    @consume({context: apiContext})
+    public APIService!: APIService;
+
+    private energyConsumer?: StoreConsumer<Record<number, { totalEnergyKwh: number, totalCost: number }>>;
 
     constructor() {
         super();
+    }
+    firstUpdated(_changedProperties: PropertyValues) {
+        if (this.APIService && !this.energyConsumer) {
+            this.energyConsumer = new StoreConsumer(this, this.APIService.deviceEnergy);
+        }
     }
 
     static styles = css`
@@ -114,6 +125,13 @@ export class DeviceTile extends LitElement {
                     <div>
                         <div class="energy">${Number(this.device.huidig_verbruik).toFixed(2)} W</div>
                         <div class="sub">${this.device.actief ? 'Actief' : 'Inactief'}</div>
+                        <div class="sub">24u: ${(() => {
+                            try {
+                                const store = this.energyConsumer?.state ?? {};
+                                const s = this.device ? (store[this.device.apparaat_id] ?? { totalEnergyKwh: 0, totalCost: 0 }) : { totalEnergyKwh: 0, totalCost: 0 };
+                                return `${s.totalEnergyKwh.toFixed(3)} kWh • €${s.totalCost.toFixed(2)}`;
+                            } catch (e) { return '0.000 kWh • €0.00'; }
+                        })()}</div>
                     </div>
                     <div>
                         <md-button

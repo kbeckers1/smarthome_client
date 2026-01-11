@@ -67,7 +67,7 @@ export class AuthService {
                 style: 'default',
                 description: 'Logged out'
         })
-        Router.route(5)
+        Router.route(6)
 
         // deregistering of our token happens lazily
         const res = this.api.request({
