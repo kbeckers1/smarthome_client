@@ -240,9 +240,9 @@ export class APIService implements ReactiveController {
 
         const hourly = (res.data ?? {}).hourly ?? {};
         const temps: number[] = (hourly.temperature_2m ?? []) as number[];
-        // Ensure we have at least 25 points (24h + endpoint). If not, throw.
+
         if (!temps || temps.length < 2) throw new Error('insufficient hourly temps');
-        // If API returned only 24 points, attempt to pad by repeating last value
+
         if (temps.length < 25) {
             const last = temps[temps.length - 1];
             while (temps.length < 25) temps.push(last);

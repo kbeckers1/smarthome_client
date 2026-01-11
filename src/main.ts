@@ -11,6 +11,7 @@ import './components/general/Notification'
 import './components/forms/TextField'
 import './components/advanced/Graph'
 import './components/advanced/Table'
+import './components/general/DeviceTile'
 
 // Layouts
 import './layouts/Split'

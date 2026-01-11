@@ -1527,7 +1527,7 @@
   };
   var _Router = class {
     constructor() {
-      this.state = r9(1);
+      this.state = r9(5);
     }
     route(route) {
       this.state.set(route);
@@ -2441,7 +2441,7 @@
   // src/services/graph_renderers/LineRenderer.ts
   function drawLine(ctx, graph2, graphBox, x_range, y_range) {
     ctx.strokeStyle = graph2.color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 5;
     ctx.beginPath();
     const dataset = graph2.graph;
     const x_entries = x_range.end - x_range.start;
@@ -2841,6 +2841,135 @@
   Table = __decorate([
     t3("adv-table")
   ], Table);
+
+  // src/components/general/DeviceTile.ts
+  var DeviceTile = class extends i4 {
+    constructor() {
+      super();
+      this.disabled = false;
+      this.callback = () => {
+      };
+    }
+    isLamp(name) {
+      return name.toLowerCase().includes("lamp");
+    }
+    isServo(name) {
+      return name.toLowerCase().includes("servo");
+    }
+    render() {
+      if (!this.device)
+        return x``;
+      const name = this.device.naam ?? "";
+      const active = Boolean(this.device.actief);
+      let bg = "#ffffff";
+      let textColor = "#000000";
+      if (this.disabled) {
+        bg = "#dcdcdc";
+        textColor = "#666";
+      } else if (this.isLamp(name)) {
+        bg = active ? "#FFF5DE" : "#ffffff";
+        textColor = active ? "#fff" : "#000";
+      } else if (this.isServo(name)) {
+        bg = active ? "#E0FFE1" : "#c30000";
+        textColor = "#fff";
+      }
+      const buttonLabel = this.device.beheerd ? "Beheerd" : active ? "Uit" : "Aan";
+      return x`
+            <style>
+                :host { background: ${bg}; color: ${textColor}; position: relative; }
+            </style>
+            <div class="inner">
+                <div class="meta">
+                    <div>
+                        <div class="title">${this.device.naam}</div>
+                        <div class="sub">${this.device.kamer}</div>
+                    </div>
+                    <div class="sub">ID: ${this.device.apparaat_id}</div>
+                </div>
+
+                <div class="bottom">
+                    <div>
+                        <div class="energy">${Number(this.device.huidig_verbruik).toFixed(2)} W</div>
+                        <div class="sub">${this.device.actief ? "Actief" : "Inactief"}</div>
+                    </div>
+                    <div>
+                        <md-button
+                            .type=${Styles2.Primary}
+                            ?disabled=${this.device.beheerd || this.disabled}
+                            .callback=${() => this.callback(this.device.apparaat_id, this.device.actief)}
+                        >${buttonLabel}</md-button>
+                    </div>
+                </div>
+
+                ${n8(this.disabled, () => x`<div class="overlay">Bezig met schakelen...</div>`)}
+            </div>
+        `;
+    }
+  };
+  DeviceTile.styles = i`
+        :host {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: solid 1px #a2a2a2;
+            color: black;
+            font-family: "Funnel Display", Helvetica, Arial;
+        }
+        .inner {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            height: 100%;
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+        .meta {
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .sub {
+            font-size: 12px;
+            color: rgba(0,0,0,0.6);
+        }
+        .bottom {
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .energy {
+            font-weight: 600;
+        }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.6);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size: 14px;
+            color: #666;
+        }
+    `;
+  __decorate([
+    n4({type: Object, attribute: false})
+  ], DeviceTile.prototype, "device", 2);
+  __decorate([
+    n4({type: Boolean})
+  ], DeviceTile.prototype, "disabled", 2);
+  __decorate([
+    n4({attribute: false})
+  ], DeviceTile.prototype, "callback", 2);
+  DeviceTile = __decorate([
+    t3("gl-device-tile")
+  ], DeviceTile);
 
   // src/layouts/Split.ts
   var SplitLayout = class extends i4 {
@@ -4658,26 +4787,61 @@
   var DeviceLayout = class extends i4 {
     constructor() {
       super();
+      this.disabledDeviceButtons = new Set([]);
+      this.button_callback = this.button_callback.bind(this);
+    }
+    firstUpdated(_changedProperties) {
+      if (this.APIService?.devices && !this.DeviceConsumer) {
+        this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+      }
+    }
+    updated(_changedProperties) {
+      if (!this.DeviceConsumer && this.APIService?.devices) {
+        this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+      }
+    }
+    async button_callback(apparaat_id, nu_actief) {
+      await Wrap(this.disabledDeviceButtons, (set) => {
+        set.add(apparaat_id);
+        this.requestUpdate();
+      }, (set) => {
+        set.delete(apparaat_id);
+        this.requestUpdate();
+      }, async (id, now_active) => {
+        await new ToggleDevice(this.NotificationController, this.APIService).start(id, now_active);
+      }, apparaat_id, nu_actief);
     }
     render() {
+      const devicesState = Object.values(this.APIService?.devices?.value ?? {});
       return x`
             ${base_style15}
             <div class="inner">
-                <md-title>
-                    Apparaten
-                </md-title>
+                <md-title>Apparaten</md-title>
                 <div class="grid">
-                    <gl-surface class="box_1" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_2" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_3" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_4" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_5" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_6" width="auto" height="autho"></gl-surface>
+                    ${[0, 1, 2, 3, 4, 5].map((idx) => x`
+                        ${devicesState[idx] ? x`
+                            <gl-device-tile
+                                class="box_${idx + 1}"
+                                .device=${devicesState[idx]}
+                                ?disabled=${this.disabledDeviceButtons.has(devicesState[idx].apparaat_id)}
+                                .callback=${this.button_callback}
+                            ></gl-device-tile>
+                        ` : x``}
+                    `)}
                 </div>
             </div>
         `;
     }
   };
+  __decorate([
+    c7({context: apiContext})
+  ], DeviceLayout.prototype, "APIService", 2);
+  __decorate([
+    c7({context: notificationContext})
+  ], DeviceLayout.prototype, "NotificationController", 2);
+  __decorate([
+    n4({attribute: false})
+  ], DeviceLayout.prototype, "disabledDeviceButtons", 2);
   DeviceLayout = __decorate([
     t3("ly-devices")
   ], DeviceLayout);
@@ -4773,7 +4937,7 @@
         const dataset = values.map((v4, i9) => ({x: i9 * 0.25, y: v4}));
         const maxY = Math.max(...values, 1);
         this.graphData = {
-          graphs: new Map([[0, {type: GraphTypes.LineGraph, color: "#c30000", graph: dataset}]]),
+          graphs: new Map([[0, {type: GraphTypes.LineGraph, color: "#3f9062", graph: dataset}]]),
           x_range: {start: 0, end: 24, step: 0.25},
           y_range: {start: 0, end: Math.ceil(maxY * 1.2), step: 0.25},
           x_label: "Hours",

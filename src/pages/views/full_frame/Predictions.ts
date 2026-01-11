@@ -68,7 +68,7 @@ export class PredictionLayout extends LitElement {
             const dataset = values.map((v, i) => ({ x: i * 0.25, y: v }));
             const maxY = Math.max(...values, 1);
             this.graphData = {
-                graphs: new Map([[0, { type: GraphTypes.LineGraph, color: '#c30000', graph: dataset }]]),
+                graphs: new Map([[0, { type: GraphTypes.LineGraph, color: '#3f9062', graph: dataset }]]),
                 x_range: { start: 0, end: 24, step: 0.25 },
                 y_range: { start: 0, end: Math.ceil(maxY * 1.2), step: 0.25 },
                 x_label: 'Hours',

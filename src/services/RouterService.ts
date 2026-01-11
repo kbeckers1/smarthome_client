@@ -21,7 +21,7 @@ export const Routes: Record<number, Route> = {
 
 // only changes the active Route.
 class _Router {
-    public state = signal(1)
+    public state = signal(5)
 
     route(route: number) {
         this.state.set(route)

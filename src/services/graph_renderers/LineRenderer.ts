@@ -2,7 +2,7 @@ import { Cuboid, GraphTypes, GraphWrapper, Range, Point } from "../GraphControll
 
 export function drawLine(ctx: CanvasRenderingContext2D, graph: GraphWrapper<GraphTypes.LineGraph>, graphBox: Cuboid, x_range: Range, y_range: Range) {
     ctx.strokeStyle = graph.color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 5;
     ctx.beginPath();
 
     const dataset = graph.graph;

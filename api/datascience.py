@@ -81,20 +81,23 @@ r: float = harvest[0][best_idx]  # correlatie coefficient
 x_1 = best_feature_data
 y_1 = energy_consumption
 
-def calculate_trendline(x: list, y: list, pearsons: float) -> tuple[float, float]: # slope, offset (y = ax+b, where a=slope, b=offset)
-    mean_x = mean(x)
-    mean_y = mean(y)
-    std_x = std(x)
-    std_y = std(y)
+def calculate_trendline(x, y, num_iterations=1000, learning_rate=0.00001) -> tuple[float, float]:
+    n = len(x)  
+    coefficients: list[float] = [0, 0]
+    for _ in range(num_iterations):
+        grad_a = 0
+        grad_b = 0
+        for i in range(n):
+            error = (coefficients[0] + coefficients[1] * x[i]) - y[i]
+            grad_a += 2 * error
+            grad_b += 2 * error * x[i]
 
-    # slope en interceptie van pearsons
-    # https://math.stackexchange.com/questions/204020/what-is-the-equation-used-to-calculate-a-linear-trendline
-    # wat berekenen we? we pakken eerst onze coefficient, dan volgen we deze formules:
-    # Eerst de slope (m) berekenen. m = r * (std(y) / std(y)). 
-    # Dan de y-inercept met de y-as berekenen:
-    # b = gemiddelde van Y, min m, X gemiddelde van X.
-    m = float(r * (std_y / std_x))
-    b = float(mean_y - m * mean_x)
-    return (m, b)
+        coefficients[0] -= learning_rate * grad_a / n
+        coefficients[1] -= learning_rate * grad_b / n
 
-slope, offset = calculate_trendline(x_1, y_1, r)
+    return coefficients[1], coefficients[0]
+
+slope, offset = calculate_trendline(x_1, y_1)
+
+# export which feature was used so callers (API) can inform clients
+feature = best_feature_name

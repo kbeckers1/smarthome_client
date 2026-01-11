@@ -1,5 +1,11 @@
-import {html, css, LitElement, TemplateResult} from 'lit';
+import {html, css, LitElement, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import { consume } from '@lit/context';
+import { apiContext, APIService, Device } from '../../../services/APIService';
+import { notificationContext, NotificationController } from '../../../services/NotificationController';
+import { StoreConsumer } from '../../../services/GlobalState';
+import { Wrap } from '../../../directives/Wrap';
+import { ToggleDevice } from '../../../services/micro/ToggleDevice';
 
 const base_style = html`
     <style>
@@ -66,24 +72,63 @@ const base_style = html`
 // WebComponent
 @customElement('ly-devices')
 export class DeviceLayout extends LitElement {
+    @consume({context: apiContext})
+    public APIService!: APIService;
+
+    @consume({context: notificationContext})
+    public NotificationController!: NotificationController;
+
+    public DeviceConsumer?: StoreConsumer;
+
+    @property({attribute: false}) disabledDeviceButtons: Set<number> = new Set([]);
+
     constructor() {
         super();
+        this.button_callback = this.button_callback.bind(this);
+    }
+
+    firstUpdated(_changedProperties: PropertyValues) {
+        if (this.APIService?.devices && !this.DeviceConsumer) {
+            this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+        }
+    }
+
+    updated(_changedProperties: PropertyValues) {
+        if (!this.DeviceConsumer && this.APIService?.devices) {
+            this.DeviceConsumer = new StoreConsumer(this, this.APIService.devices);
+        }
+    }
+
+    async button_callback(apparaat_id: number, nu_actief: boolean) {
+        await Wrap(
+            this.disabledDeviceButtons,
+            (set) => { set.add(apparaat_id); this.requestUpdate(); },
+            (set) => { set.delete(apparaat_id); this.requestUpdate(); },
+            async (id: number, now_active: boolean) => {
+                await new ToggleDevice(this.NotificationController, this.APIService).start(id, now_active);
+            },
+            apparaat_id, nu_actief
+        )
     }
 
     render() {
+        const devicesState: Array<Device> = Object.values((this.APIService as APIService)?.devices?.value ?? {}) as Array<Device>;
+
         return html`
             ${base_style}
             <div class="inner">
-                <md-title>
-                    Apparaten
-                </md-title>
+                <md-title>Apparaten</md-title>
                 <div class="grid">
-                    <gl-surface class="box_1" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_2" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_3" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_4" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_5" width="auto" height="autho"></gl-surface>
-                    <gl-surface class="box_6" width="auto" height="autho"></gl-surface>
+                    ${[0,1,2,3,4,5].map((idx) => html`
+                        ${devicesState[idx] ? html`
+                            <gl-device-tile
+                                class="box_${idx+1}"
+                                .device=${devicesState[idx]}
+                                ?disabled=${this.disabledDeviceButtons.has(devicesState[idx].apparaat_id)}
+                                .callback=${this.button_callback}
+                            ></gl-device-tile>
+                        ` : html``}
+                    `)}
                 </div>
             </div>
         `;
