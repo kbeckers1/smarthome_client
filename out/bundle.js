@@ -1527,7 +1527,7 @@
   };
   var _Router = class {
     constructor() {
-      this.state = r9(5);
+      this.state = r9(1);
     }
     route(route) {
       this.state.set(route);
@@ -2438,6 +2438,31 @@
     ;
   }
 
+  // src/services/graph_renderers/LineRenderer.ts
+  function drawLine(ctx, graph2, graphBox, x_range, y_range) {
+    ctx.strokeStyle = graph2.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const dataset = graph2.graph;
+    const x_entries = x_range.end - x_range.start;
+    const y_entries = y_range.end - y_range.start;
+    const transform_point = (point) => {
+      return {
+        x: point.x * (graphBox.width / x_entries) + graphBox.x,
+        y: graphBox.height - point.y * (graphBox.height / y_entries) + graphBox.y
+      };
+    };
+    if (dataset.length === 0)
+      return;
+    const base = transform_point(dataset[0]);
+    ctx.moveTo(base.x, base.y);
+    for (let i9 = 1; i9 < dataset.length; i9++) {
+      const p5 = transform_point(dataset[i9]);
+      ctx.lineTo(p5.x, p5.y);
+    }
+    ctx.stroke();
+  }
+
   // src/services/GraphController.ts
   var MAX_AXIS_LENGTH = 4;
   var GraphTypes;
@@ -2448,8 +2473,7 @@
     GraphTypes2[GraphTypes2["ScatterGraph"] = 3] = "ScatterGraph";
   })(GraphTypes || (GraphTypes = {}));
   var GraphRenderers = {
-    [0]: () => {
-    },
+    [0]: drawLine,
     [1]: () => {
     },
     [2]: drawColumns,
@@ -2552,25 +2576,6 @@
       ctx.textAlign = "center";
       ctx.fillText(label ? label : "", x_width / 2 + start_x, start_y + y_height + 40);
       ctx.restore();
-    }
-    drawLine(ctx, graph2, grid_width, grid_height, color, start_x, start_y, x_entries, y_entries) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      const dataset = graph2.graph;
-      const transform_point = (point) => {
-        return {
-          x: point.x * (grid_width / x_entries) + start_x,
-          y: grid_height - point.y * (grid_height / y_entries) + start_y
-        };
-      };
-      const base_point = transform_point(dataset[0]);
-      ctx.moveTo(base_point.x, base_point.y);
-      for (let i9 = 1; i9 <= dataset.length - 1; i9++) {
-        const first = transform_point(dataset[i9]);
-        ctx.lineTo(first.x, first.y);
-      }
-      ctx.stroke();
     }
   };
 
@@ -3443,6 +3448,11 @@
       return this._state;
     }
     set(patch) {
+      if (Array.isArray(this._state) || Array.isArray(patch)) {
+        this._state = patch;
+        this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
+        return;
+      }
       if (typeof this._state === "object" && this._state !== null && typeof patch === "object" && patch !== null) {
         this._state = {...this._state, ...patch};
       } else {
@@ -3545,6 +3555,8 @@
       this.innerTemp = new Store(0);
       this.outerTemp = new Store(0);
       this.humidity = new Store(0);
+      this.predictedTrend = new Store([]);
+      this.trendlineCoeffs = new Store(null);
       (this.host = host).addController(this);
       this.timeout = timeout;
     }
@@ -3641,9 +3653,82 @@
         this.fetch_devices(),
         this.fetch_accounts(),
         this.fetch_me(),
-        this.fetch_weather_data()
+        this.fetch_weather_data(),
+        this.fetch_trendline()
       ]);
       console.log("Data retrieval finished");
+    }
+    async fetch_trendline() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/predictions/trendline",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      if (!res.success) {
+        console.warn("fetch_trendline failed", res.message);
+        return;
+      }
+      const data = res.data;
+      if (data && typeof data.slope === "number" && typeof data.offset === "number") {
+        this.trendlineCoeffs.set({slope: data.slope, offset: data.offset});
+        try {
+          const temps = await this.fetch_temperature_24h_hourly();
+          console.log("temps");
+          console.log(temps);
+          const temps15 = this.interpolateTo15Min(temps);
+          console.log(temps15);
+          const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
+          console.log(predicted);
+          this.predictedTrend.set(predicted);
+        } catch (e10) {
+          console.warn("failed computing predicted trend from coeffs", e10);
+        }
+        return;
+      }
+      console.warn("fetch_trendline: unknown response format", data);
+    }
+    async fetch_temperature_24h_hourly() {
+      const res = await this.request({
+        Url: "https://api.open-meteo.com/v1/forecast",
+        Catch: false,
+        Type: "GET",
+        Authorization: false,
+        Params: new URLSearchParams({
+          latitude: "52.0908",
+          longitude: "5.1222",
+          hourly: "temperature_2m",
+          forecast_days: "1",
+          timezone: "Europe/Amsterdam"
+        })
+      });
+      if (!res.success)
+        throw new Error("weather fetch failed");
+      const hourly = (res.data ?? {}).hourly ?? {};
+      const temps = hourly.temperature_2m ?? [];
+      if (!temps || temps.length < 2)
+        throw new Error("insufficient hourly temps");
+      if (temps.length < 25) {
+        const last = temps[temps.length - 1];
+        while (temps.length < 25)
+          temps.push(last);
+      }
+      return temps.slice(0, 25);
+    }
+    interpolateTo15Min(hourlyTemps) {
+      const result = [];
+      for (let i9 = 0; i9 < 96; i9++) {
+        const t8 = i9 / 4;
+        const lo = Math.floor(t8);
+        const hi = Math.min(lo + 1, hourlyTemps.length - 1);
+        const frac = t8 - lo;
+        const val = hourlyTemps[lo] * (1 - frac) + hourlyTemps[hi] * frac;
+        result.push(val);
+      }
+      return result;
+    }
+    applyTrendlineToTemps(temps15, slope, intercept) {
+      return temps15.map((t8) => slope * t8 + intercept);
     }
     async fetch_devices() {
       const res = await this.request({
@@ -4515,14 +4600,58 @@
             --border-width: 5px;
         }
         .inner {
-            display: flex;
             padding: 10px;
             padding-top: 0px;
             height: 100%;
-            width: 100%;
-            min-width: 0;
-            box-sizing: border-box;
+            width: calc(100% - 15px);
             overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between all children */
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr;
+            grid-auto-rows: 2fr 2fr;
+            height: 100%;
+            width: 100%;
+            gap: 15px;
+        }
+        .box_1 {
+            grid-column-start: 1;
+            grid-column-end: 1;
+            grid-row-start: 1;
+            grid-row-end: 1;
+        }
+        .box_2 {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 1;
+            grid-row-end: 1;
+        }
+        .box_3 {
+            grid-column-start: 3;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 1;
+        }
+        .box_4 {
+            grid-column-start: 1;
+            grid-column-end: 1;
+            grid-row-start: 2;
+            grid-row-end: 2;
+        }
+        .box_5 {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 2;
+            grid-row-end: 2;
+        }
+        .box_6 {
+            grid-column-start: 3;
+            grid-column-end: 3;
+            grid-row-start: 2;
+            grid-row-end: 2;
         }
     </style>    
 `;
@@ -4537,6 +4666,14 @@
                 <md-title>
                     Apparaten
                 </md-title>
+                <div class="grid">
+                    <gl-surface class="box_1" width="auto" height="autho"></gl-surface>
+                    <gl-surface class="box_2" width="auto" height="autho"></gl-surface>
+                    <gl-surface class="box_3" width="auto" height="autho"></gl-surface>
+                    <gl-surface class="box_4" width="auto" height="autho"></gl-surface>
+                    <gl-surface class="box_5" width="auto" height="autho"></gl-surface>
+                    <gl-surface class="box_6" width="auto" height="autho"></gl-surface>
+                </div>
             </div>
         `;
     }
@@ -4629,6 +4766,22 @@
     </style>    
 `;
   var PredictionLayout = class extends i4 {
+    firstUpdated() {
+      this.APIService.predictedTrend.subscribe((arr) => {
+        const values = arr ?? [];
+        console.log("h", values);
+        const dataset = values.map((v4, i9) => ({x: i9 * 0.25, y: v4}));
+        const maxY = Math.max(...values, 1);
+        this.graphData = {
+          graphs: new Map([[0, {type: GraphTypes.LineGraph, color: "#c30000", graph: dataset}]]),
+          x_range: {start: 0, end: 24, step: 0.25},
+          y_range: {start: 0, end: Math.ceil(maxY * 1.2), step: 0.25},
+          x_label: "Hours",
+          y_label: "kWh"
+        };
+        this.requestUpdate();
+      });
+    }
     constructor() {
       super();
     }
@@ -4641,9 +4794,7 @@
                 </md-title>
                 <div class="grid">
                     <gl-surface class="graph_box" width="auto" height="auto">
-                        <adv-graph>
-
-                        </adv-graph>
+                        <adv-graph .graph=${this.graphData}></adv-graph>
                     </gl-surface>
                     <gl-surface style="gap: 15px;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile color="#e1b400" style="flex: 1 1 auto;" width="auto">

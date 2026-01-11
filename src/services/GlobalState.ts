@@ -17,7 +17,15 @@ export class Store<T = Record<string, any>> extends EventTarget {
   }
 
   set(patch: MaybePartial<T>) {
-    // If both current state and patch are objects, do a shallow merge.
+    // If either current state or patch is an Array, replace directly to avoid
+    // converting arrays into plain objects via shallow-merge.
+    if (Array.isArray(this._state) || Array.isArray(patch)) {
+      this._state = patch as T;
+      this.dispatchEvent(new CustomEvent('change', { detail: this._state }));
+      return;
+    }
+
+    // If both current state and patch are plain objects, do a shallow merge.
     if (typeof this._state === 'object' && this._state !== null && typeof patch === 'object' && patch !== null) {
       this._state = { ...(this._state as any), ...(patch as any) } as T;
     } else {

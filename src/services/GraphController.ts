@@ -6,6 +6,7 @@ import { when } from "lit/directives/when.js";
 import {createContext} from '@lit/context';
 import { Graph } from "../components/advanced/Graph";
 import { drawColumns } from "./graph_renderers/ColumnRenderer";
+import { drawLine } from "./graph_renderers/LineRenderer";
 
 const MAX_AXIS_LENGTH = 4;
 
@@ -44,7 +45,7 @@ export type GraphTypeMap = {
 export const GraphRenderers: {
     [K in GraphTypes]: (ctx: CanvasRenderingContext2D, graph: GraphWrapper<K>, graphBox: Cuboid, x_range: Range, y_range: Range) => void
 } = {
-    [GraphTypes.LineGraph]: () => {},
+    [GraphTypes.LineGraph]: drawLine,
     [GraphTypes.WaterfallGraph]: () => {},
     [GraphTypes.ColumnGraph]: drawColumns,
     [GraphTypes.ScatterGraph]: () => {},
@@ -225,30 +226,6 @@ export class GraphController implements ReactiveController {
         ctx.fillText(label ? label : '', x_width / 2 + start_x, start_y + y_height + 40);
         ctx.restore();
     }
-
-    drawLine(ctx: CanvasRenderingContext2D, graph: GraphWrapper<GraphTypes.LineGraph>, grid_width: number, grid_height: number, color: string, start_x: number, start_y: number, x_entries: number, y_entries: number) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-
-        const dataset = graph.graph
-
-        // TODO: clamp dataset in the x_entries and y_entries thing
-        // we need to do some point transformations to invert our view and to be correctly scaled.
-        const transform_point = (point: Point) => {
-            return {
-                x:               point.x * (grid_width / x_entries) + start_x,
-                y: grid_height - point.y * (grid_height / y_entries) + start_y
-            } as Point // transformations: We invert the coordinate space, convert locasl space to global space and we apply our offsets
-        }
-        const base_point = transform_point(dataset[0])
-        ctx.moveTo(base_point.x, base_point.y);
-        for (let i = 1; i <= dataset.length - 1; i++) {
-            const first = transform_point(dataset[i]);
-            ctx.lineTo(first.x, first.y);
-        }
-        ctx.stroke();
-    }
 }
 
 // TODO:
@@ -271,5 +248,28 @@ Also i want to centralize some mathematical calculations (wherever possible). An
         start: 0,
         end: 40,
         step: 0.05
+    }
+            drawLine(ctx: CanvasRenderingContext2D, graph: GraphWrapper<GraphTypes.LineGraph>, grid_width: number, grid_height: number, color: string, start_x: number, start_y: number, x_entries: number, y_entries: number) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+
+        const dataset = graph.graph
+
+        // TODO: clamp dataset in the x_entries and y_entries thing
+        // we need to do some point transformations to invert our view and to be correctly scaled.
+        const transform_point = (point: Point) => {
+            return {
+                x:               point.x * (grid_width / x_entries) + start_x,
+                y: grid_height - point.y * (grid_height / y_entries) + start_y
+            } as Point // transformations: We invert the coordinate space, convert locasl space to global space and we apply our offsets
+        }
+        const base_point = transform_point(dataset[0])
+        ctx.moveTo(base_point.x, base_point.y);
+        for (let i = 1; i <= dataset.length - 1; i++) {
+            const first = transform_point(dataset[i]);
+            ctx.lineTo(first.x, first.y);
+        }
+        ctx.stroke();
     }
 */

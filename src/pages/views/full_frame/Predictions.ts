@@ -1,7 +1,9 @@
 import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import { apiContext, APIService } from '../../../services/APIService';
+import { GraphData, GraphTypes } from '../../../services/GraphController';
 import { consume } from '@lit/context';
+import { Graph } from '../../../components/advanced/Graph';
 
 const base_style = html`
     <style>
@@ -55,6 +57,27 @@ export class PredictionLayout extends LitElement {
     @consume({context: apiContext})
     public APIService!: APIService;
 
+    private graphData?: GraphData;
+
+    firstUpdated(): void {
+        // ensure we have the latest trendline and update graph whenever store changes
+        this.APIService.predictedTrend.subscribe((arr) => {
+            const values = arr ?? [];
+            console.log('h', values);
+            // build line dataset: x in hours, step 0.25 (15 minutes)
+            const dataset = values.map((v, i) => ({ x: i * 0.25, y: v }));
+            const maxY = Math.max(...values, 1);
+            this.graphData = {
+                graphs: new Map([[0, { type: GraphTypes.LineGraph, color: '#c30000', graph: dataset }]]),
+                x_range: { start: 0, end: 24, step: 0.25 },
+                y_range: { start: 0, end: Math.ceil(maxY * 1.2), step: 0.25 },
+                x_label: 'Hours',
+                y_label: 'kWh'
+            };
+            this.requestUpdate();
+        });
+    }
+
     constructor() {
         super();
     }
@@ -68,9 +91,7 @@ export class PredictionLayout extends LitElement {
                 </md-title>
                 <div class="grid">
                     <gl-surface class="graph_box" width="auto" height="auto">
-                        <adv-graph>
-
-                        </adv-graph>
+                        <adv-graph .graph=${this.graphData as GraphData}></adv-graph>
                     </gl-surface>
                     <gl-surface style="gap: 15px;" class="detail_box" width="auto" height="auto">
                         <gl-data-tile color="#e1b400" style="flex: 1 1 auto;" width="auto">

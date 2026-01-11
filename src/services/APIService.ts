@@ -54,6 +54,8 @@ export class APIService implements ReactiveController {
     innerTemp: Store<number> = new Store(0);
     outerTemp: Store<number> = new Store(0);
     humidity: Store<number> = new Store(0);
+    predictedTrend: Store<number[]> = new Store([] as number[]);
+    trendlineCoeffs: Store<{slope: number, offset: number} | null> = new Store(null);
     fetchTime!: Date;
 
 
@@ -175,9 +177,97 @@ export class APIService implements ReactiveController {
             this.fetch_devices(),
             this.fetch_accounts(),
             this.fetch_me(),
-            this.fetch_weather_data()
+            this.fetch_weather_data(),
+            this.fetch_trendline()
         ])
         console.log('Data retrieval finished')
+    }
+
+    async fetch_trendline() {
+        const res = await this.request<any>({
+            Url: "http://localhost:5000/api/predictions/trendline",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+        })
+        if (!res.success) {
+            console.warn('fetch_trendline failed', res.message)
+            return;
+        }
+
+        const data = res.data;
+
+        // if backend returned coefficients
+        if (data && typeof data.slope === 'number' && typeof data.offset === 'number') {
+            this.trendlineCoeffs.set({ slope: data.slope, offset: data.offset });
+            // fetch hourly temps, interpolate to 15-min and compute predicted kWh
+            try {
+                const temps = await this.fetch_temperature_24h_hourly();
+                console.log('temps')
+                console.log(temps)
+                const temps15 = this.interpolateTo15Min(temps);
+                console.log(temps15)
+                const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
+                console.log(predicted)
+                this.predictedTrend.set(predicted);
+            } catch (e) {
+                console.warn('failed computing predicted trend from coeffs', e);
+            }
+            return;
+        }
+
+        // unknown format
+        console.warn('fetch_trendline: unknown response format', data);
+    }
+
+    // Fetch hourly temperature forecast for next 24 hours (returns array of 25 hourly samples covering 24h span)
+    async fetch_temperature_24h_hourly(): Promise<number[]> {
+        const res = await this.request<any>({
+            Url: "https://api.open-meteo.com/v1/forecast",
+            Catch: false,
+            Type: "GET",
+            Authorization: false,
+            Params: new URLSearchParams({
+                latitude: '52.0908',
+                longitude: '5.1222',
+                hourly: 'temperature_2m',
+                forecast_days: '1',
+                timezone: 'Europe/Amsterdam'
+            })
+        });
+
+        if (!res.success) throw new Error('weather fetch failed');
+
+        const hourly = (res.data ?? {}).hourly ?? {};
+        const temps: number[] = (hourly.temperature_2m ?? []) as number[];
+        // Ensure we have at least 25 points (24h + endpoint). If not, throw.
+        if (!temps || temps.length < 2) throw new Error('insufficient hourly temps');
+        // If API returned only 24 points, attempt to pad by repeating last value
+        if (temps.length < 25) {
+            const last = temps[temps.length - 1];
+            while (temps.length < 25) temps.push(last);
+        }
+        return temps.slice(0, 25);
+    }
+
+    // Interpolate hourly samples to 15-minute resolution (96 samples)
+    interpolateTo15Min(hourlyTemps: number[]): number[] {
+        // hourlyTemps expected length >= 25 spanning 24h with hourly steps
+        const result: number[] = [];
+        for (let i = 0; i < 96; i++) {
+            const t = i / 4; // hours from start
+            const lo = Math.floor(t);
+            const hi = Math.min(lo + 1, hourlyTemps.length - 1);
+            const frac = t - lo;
+            const val = hourlyTemps[lo] * (1 - frac) + hourlyTemps[hi] * frac;
+            result.push(val);
+        }
+        return result;
+    }
+
+    // Apply linear trendline (y = slope * x + intercept) to an array of temperatures
+    applyTrendlineToTemps(temps15: number[], slope: number, intercept: number): number[] {
+        return temps15.map(t => slope * t + intercept);
     }
 
     async fetch_devices() {

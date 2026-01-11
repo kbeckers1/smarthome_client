@@ -4,6 +4,7 @@ import secrets
 from functools import wraps
 from flask_cors import CORS, cross_origin
 from datetime import datetime, timedelta, timezone, date
+from datascience import slope, offset
 
 app = Flask(__name__)
 CORS(app)
@@ -20,7 +21,6 @@ def connect_db():
         port=5432,
         sslmode="require"
     )
-
 
 # ============================
 # TOKEN CHECK (VERPLICHT)
@@ -416,23 +416,12 @@ def kamers():
 # =========================================================
 # ✅ REGRESSIE (AI UITKOMST)
 # =========================================================
-@app.route("/api/regressie", methods=["GET"])
+@app.route("/api/predictions/trendline", methods=["GET", "OPTIONS"])
 @require_token
 def regressie():
-    conn = connect_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT waarde FROM sensordata
-        WHERE type_meting = 'verbruik'
-        ORDER BY tijdstempel DESC LIMIT 1
-    """)
-    data = cur.fetchone()
-    cur.close()
-    conn.close()
-
     return jsonify({
-        "laatste_verbruik": data[0] if data else "Geen data"
+        "slope": slope,
+        "offset": offset
     })
 
 
