@@ -140,13 +140,16 @@ export class GraphController implements ReactiveController {
         const ctx = this.context;
         // if there is atleast one graph component, draw the whole ordeal
         if (this.graphs?.has(0)) {
-            // we need to calculate our Range and our intervals.
-            const x_entries: number = (this.x_range.end - this.x_range.start) // this is the AMOUNT of x entries that we have
-            const y_entries: number = (this.y_range.end - this.y_range.start)
-            const x_entries_scaled: number = x_entries * this.x_range.step // this is the absolute positioning of them relative to the zero-point
-            const y_entries_scaled: number = y_entries * this.y_range.step
+            // calculate spans and intervals using the original intended semantics:
+            // tick spacing (in units) = 1 / step (so step=0.25 -> tick every 4 units)
+            const x_span = this.x_range.end - this.x_range.start;
+            const y_span = this.y_range.end - this.y_range.start;
+            const x_tickSpacing = this.x_range.step > 0 ? 1 / this.x_range.step : x_span;
+            const y_tickSpacing = this.y_range.step > 0 ? 1 / this.y_range.step : y_span;
+            const x_intervals = Math.max(1, Math.round(x_span / x_tickSpacing));
+            const y_intervals = Math.max(1, Math.round(y_span / y_tickSpacing));
 
-            this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_entries_scaled, y_entries_scaled);
+            this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_intervals, y_intervals);
             this.drawYAxis(ctx, this.graphBox.y, this.graphBox.height, this.y_range, this.y_label);
             this.drawXAxis(ctx, this.graphBox.x, this.graphBox.y, this.graphBox.width, this.graphBox.height, this.x_range, this.x_label);
         }
@@ -161,37 +164,40 @@ export class GraphController implements ReactiveController {
         ctx.strokeStyle = '#e3e3e3';
         ctx.lineWidth = 1;
 
-        // we have a amount of Lines, now we need to stretch those over our stuff, so: define the whitespace per line.
-        const absolute_x_interval = width / x_entries
-        const absolute_y_interval = height / y_entries
+        // compute pixel spacing for grid lines using tick counts
+        const absolute_x_interval = width / x_entries;
+        const absolute_y_interval = height / y_entries;
 
-        for (let i = 0; i <= width; i += absolute_x_interval) {
+        for (let i = 0; i <= x_entries; i++) {
+            const px = i * absolute_x_interval;
             ctx.beginPath();
-            ctx.moveTo(i + start_x, start_y);
-            ctx.lineTo(i + start_x, height + start_y);
+            ctx.moveTo(px + start_x, start_y);
+            ctx.lineTo(px + start_x, height + start_y);
             ctx.stroke();
         }
-        for (let i = height; i >= -1; i -= absolute_y_interval) { // -1 als gekke fix
+        for (let j = 0; j <= y_entries; j++) {
+            const py = height - j * absolute_y_interval;
             ctx.beginPath();
-            ctx.moveTo(start_x, i + start_y);
-            ctx.lineTo(width + start_x, i + start_y);
+            ctx.moveTo(start_x, py + start_y);
+            ctx.lineTo(width + start_x, py + start_y);
             ctx.stroke();
         }
     }
 
     drawYAxis(ctx: CanvasRenderingContext2D, start_y: number, y_height: number, y_range: Range, label?: string) {
-        // y_entries_scaled
-        // calculate the amount of side entries we have, and the absolute interval (in pixels)
-        const entries = (y_range.end - y_range.start) * y_range.step
-        const absolute_y_interval = y_height / entries
+        // compute tick spacing as reciprocal of step (matches prior behaviour)
+        const tickSpacing = y_range.step > 0 ? 1 / y_range.step : (y_range.end - y_range.start);
+        const intervals = Math.max(1, Math.round((y_range.end - y_range.start) / tickSpacing));
+        const absolute_y_interval = y_height / intervals;
 
         ctx.font = "14px 'Funnel Display'";
         ctx.fillStyle = "#000000";
 
-        for (let i = entries; i >= 0; i -= 1) {
-            const abs_pos = i * absolute_y_interval + 12 // calculate position, with a small offset to display the initial number
-            // we need to find out what to display.
-            ctx.fillText(`${(entries - i) * (1 / y_range.step) }`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos)
+        // draw labels from top to bottom
+        for (let i = 0; i <= intervals; i++) {
+            const labelValue = (y_range.start + (intervals - i) * tickSpacing);
+            const abs_pos = i * absolute_y_interval + 12; // top offset
+            ctx.fillText(`${labelValue}`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos);
         }
 
         // draw the label -> https://stackoverflow.com/questions/3167928/drawing-rotated-text-on-a-html5-canvas
@@ -204,21 +210,22 @@ export class GraphController implements ReactiveController {
     }
 
     drawXAxis(ctx: CanvasRenderingContext2D, start_x: number, start_y: number, x_width: number, y_height: number, x_range: Range, label?: string) {
-        // y_entries_scaled
-        // calculate the amount of side entries we have, and the absolute interval (in pixels)
-        const entries = (x_range.end - x_range.start) * x_range.step
-        const absolute_x_interval = x_width / entries
+        // compute tick spacing as reciprocal of step (so step=0.25 -> tick every 4 units)
+        const x_tickSpacing = x_range.step > 0 ? 1 / x_range.step : (x_range.end - x_range.start);
+        const x_intervals = Math.max(1, Math.round((x_range.end - x_range.start) / x_tickSpacing));
+        const absolute_x_interval = x_width / x_intervals;
 
         ctx.font = "14px 'Funnel Display'";
         ctx.fillStyle = "#000000";
 
-        for (let i = entries; i >= 0; i -= 1) {
-            const abs_pos = i * absolute_x_interval + start_x; // calculate position, with a small offset to display the initial number
-            // we need to find out what to display.
-            const text = `${i * (1 / x_range.step) }`.substring(0, MAX_AXIS_LENGTH);
-            const text_in_pixels = ctx.measureText(text).width;
-            ctx.fillText(text, abs_pos - text_in_pixels, y_height + 20);
+        ctx.save();
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= x_intervals; i++) {
+            const abs_pos = i * absolute_x_interval + start_x;
+            const textValue = (x_range.start + i * x_tickSpacing).toString();
+            ctx.fillText(textValue, abs_pos, y_height + 20);
         }
+        ctx.restore();
 
         // label
         ctx.save();

@@ -200,18 +200,22 @@ export class APIService implements ReactiveController {
         // if backend returned coefficients
         if (data && typeof data.slope === 'number' && typeof data.offset === 'number') {
             this.trendlineCoeffs.set({ slope: data.slope, offset: data.offset });
-            // fetch hourly temps, interpolate to 15-min and compute predicted kWh
-            try {
-                const temps = await this.fetch_temperature_24h_hourly();
-                console.log('temps')
-                console.log(temps)
-                const temps15 = this.interpolateTo15Min(temps);
-                console.log(temps15)
-                const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
-                console.log(predicted)
-                this.predictedTrend.set(predicted);
-            } catch (e) {
-                console.warn('failed computing predicted trend from coeffs', e);
+            const feature = typeof data.feature === 'string' ? data.feature : null;
+
+            // Only apply coefficients to temperature series when backend used outside temperature
+            if (feature === 'Buitentemperatuur (C)') {
+                try {
+                    const temps = await this.fetch_temperature_24h_hourly();
+                    const temps15 = this.interpolateTo15Min(temps);
+                    const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
+                    this.predictedTrend.set(predicted);
+                } catch (e) {
+                    console.warn('failed computing predicted trend from coeffs', e);
+                }
+            } else {
+                // backend used some other feature; frontend doesn't have that series, so clear predictedTrend
+                console.warn('trendline feature is not temperature:', feature);
+                this.predictedTrend.set([]);
             }
             return;
         }

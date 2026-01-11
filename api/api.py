@@ -4,7 +4,7 @@ import secrets
 from functools import wraps
 from flask_cors import CORS, cross_origin
 from datetime import datetime, timedelta, timezone, date
-from datascience import slope, offset
+from datascience import slope, offset, feature
 
 app = Flask(__name__)
 CORS(app)
@@ -421,7 +421,8 @@ def kamers():
 def regressie():
     return jsonify({
         "slope": slope,
-        "offset": offset
+        "offset": offset,
+        "feature": feature
     })
 
 

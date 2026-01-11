@@ -2447,9 +2447,11 @@
     const x_entries = x_range.end - x_range.start;
     const y_entries = y_range.end - y_range.start;
     const transform_point = (point) => {
+      const rel_x = point.x - x_range.start;
+      const rel_y = point.y - y_range.start;
       return {
-        x: point.x * (graphBox.width / x_entries) + graphBox.x,
-        y: graphBox.height - point.y * (graphBox.height / y_entries) + graphBox.y
+        x: rel_x * (graphBox.width / x_entries) + graphBox.x,
+        y: graphBox.height - rel_y * (graphBox.height / y_entries) + graphBox.y
       };
     };
     if (dataset.length === 0)
@@ -2515,11 +2517,13 @@
     render() {
       const ctx = this.context;
       if (this.graphs?.has(0)) {
-        const x_entries = this.x_range.end - this.x_range.start;
-        const y_entries = this.y_range.end - this.y_range.start;
-        const x_entries_scaled = x_entries * this.x_range.step;
-        const y_entries_scaled = y_entries * this.y_range.step;
-        this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_entries_scaled, y_entries_scaled);
+        const x_span = this.x_range.end - this.x_range.start;
+        const y_span = this.y_range.end - this.y_range.start;
+        const x_tickSpacing = this.x_range.step > 0 ? 1 / this.x_range.step : x_span;
+        const y_tickSpacing = this.y_range.step > 0 ? 1 / this.y_range.step : y_span;
+        const x_intervals = Math.max(1, Math.round(x_span / x_tickSpacing));
+        const y_intervals = Math.max(1, Math.round(y_span / y_tickSpacing));
+        this.drawGridLines(ctx, this.graphBox.width, this.graphBox.height, this.graphBox.x, this.graphBox.y, x_intervals, y_intervals);
         this.drawYAxis(ctx, this.graphBox.y, this.graphBox.height, this.y_range, this.y_label);
         this.drawXAxis(ctx, this.graphBox.x, this.graphBox.y, this.graphBox.width, this.graphBox.height, this.x_range, this.x_label);
       }
@@ -2532,27 +2536,31 @@
       ctx.lineWidth = 1;
       const absolute_x_interval = width / x_entries;
       const absolute_y_interval = height / y_entries;
-      for (let i9 = 0; i9 <= width; i9 += absolute_x_interval) {
+      for (let i9 = 0; i9 <= x_entries; i9++) {
+        const px = i9 * absolute_x_interval;
         ctx.beginPath();
-        ctx.moveTo(i9 + start_x, start_y);
-        ctx.lineTo(i9 + start_x, height + start_y);
+        ctx.moveTo(px + start_x, start_y);
+        ctx.lineTo(px + start_x, height + start_y);
         ctx.stroke();
       }
-      for (let i9 = height; i9 >= -1; i9 -= absolute_y_interval) {
+      for (let j3 = 0; j3 <= y_entries; j3++) {
+        const py = height - j3 * absolute_y_interval;
         ctx.beginPath();
-        ctx.moveTo(start_x, i9 + start_y);
-        ctx.lineTo(width + start_x, i9 + start_y);
+        ctx.moveTo(start_x, py + start_y);
+        ctx.lineTo(width + start_x, py + start_y);
         ctx.stroke();
       }
     }
     drawYAxis(ctx, start_y, y_height, y_range, label) {
-      const entries = (y_range.end - y_range.start) * y_range.step;
-      const absolute_y_interval = y_height / entries;
+      const tickSpacing = y_range.step > 0 ? 1 / y_range.step : y_range.end - y_range.start;
+      const intervals = Math.max(1, Math.round((y_range.end - y_range.start) / tickSpacing));
+      const absolute_y_interval = y_height / intervals;
       ctx.font = "14px 'Funnel Display'";
       ctx.fillStyle = "#000000";
-      for (let i9 = entries; i9 >= 0; i9 -= 1) {
+      for (let i9 = 0; i9 <= intervals; i9++) {
+        const labelValue = y_range.start + (intervals - i9) * tickSpacing;
         const abs_pos = i9 * absolute_y_interval + 12;
-        ctx.fillText(`${(entries - i9) * (1 / y_range.step)}`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos);
+        ctx.fillText(`${labelValue}`.substring(0, MAX_AXIS_LENGTH), 30, abs_pos);
       }
       ctx.save();
       ctx.translate(10, y_height / 2 + start_y);
@@ -2562,16 +2570,19 @@
       ctx.restore();
     }
     drawXAxis(ctx, start_x, start_y, x_width, y_height, x_range, label) {
-      const entries = (x_range.end - x_range.start) * x_range.step;
-      const absolute_x_interval = x_width / entries;
+      const x_tickSpacing = x_range.step > 0 ? 1 / x_range.step : x_range.end - x_range.start;
+      const x_intervals = Math.max(1, Math.round((x_range.end - x_range.start) / x_tickSpacing));
+      const absolute_x_interval = x_width / x_intervals;
       ctx.font = "14px 'Funnel Display'";
       ctx.fillStyle = "#000000";
-      for (let i9 = entries; i9 >= 0; i9 -= 1) {
+      ctx.save();
+      ctx.textAlign = "right";
+      for (let i9 = 0; i9 <= x_intervals; i9++) {
         const abs_pos = i9 * absolute_x_interval + start_x;
-        const text = `${i9 * (1 / x_range.step)}`.substring(0, MAX_AXIS_LENGTH);
-        const text_in_pixels = ctx.measureText(text).width;
-        ctx.fillText(text, abs_pos - text_in_pixels, y_height + 20);
+        const textValue = (x_range.start + i9 * x_tickSpacing).toString();
+        ctx.fillText(textValue, abs_pos, y_height + 20);
       }
+      ctx.restore();
       ctx.save();
       ctx.textAlign = "center";
       ctx.fillText(label ? label : "", x_width / 2 + start_x, start_y + y_height + 40);
@@ -3801,17 +3812,19 @@
       const data = res.data;
       if (data && typeof data.slope === "number" && typeof data.offset === "number") {
         this.trendlineCoeffs.set({slope: data.slope, offset: data.offset});
-        try {
-          const temps = await this.fetch_temperature_24h_hourly();
-          console.log("temps");
-          console.log(temps);
-          const temps15 = this.interpolateTo15Min(temps);
-          console.log(temps15);
-          const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
-          console.log(predicted);
-          this.predictedTrend.set(predicted);
-        } catch (e10) {
-          console.warn("failed computing predicted trend from coeffs", e10);
+        const feature = typeof data.feature === "string" ? data.feature : null;
+        if (feature === "Buitentemperatuur (C)") {
+          try {
+            const temps = await this.fetch_temperature_24h_hourly();
+            const temps15 = this.interpolateTo15Min(temps);
+            const predicted = this.applyTrendlineToTemps(temps15, data.slope, data.offset);
+            this.predictedTrend.set(predicted);
+          } catch (e10) {
+            console.warn("failed computing predicted trend from coeffs", e10);
+          }
+        } else {
+          console.warn("trendline feature is not temperature:", feature);
+          this.predictedTrend.set([]);
         }
         return;
       }
@@ -4277,8 +4290,8 @@
       end: 5,
       step: 1
     },
-    x_label: "Time in hours",
-    y_label: "kWh usage",
+    x_label: "Tijd in uren (vandaag)",
+    y_label: "Energieverbruik in kWh",
     graphs: new Map([
       [0, graph]
     ])
@@ -4931,17 +4944,38 @@
 `;
   var PredictionLayout = class extends i4 {
     firstUpdated() {
-      this.APIService.predictedTrend.subscribe((arr) => {
+      this.APIService.predictedTrend.subscribe(async (arr) => {
         const values = arr ?? [];
         console.log("h", values);
-        const dataset = values.map((v4, i9) => ({x: i9 * 0.25, y: v4}));
-        const maxY = Math.max(...values, 1);
+        const predictedDataset = values.map((v4, i9) => ({x: i9 * 0.25, y: v4}));
+        let tempDataset = [];
+        try {
+          const hourly = await this.APIService.fetch_temperature_24h_hourly();
+          const temps15 = this.APIService.interpolateTo15Min(hourly);
+          tempDataset = temps15.map((t8, i9) => ({x: i9 * 0.25, y: t8}));
+        } catch (e10) {
+          console.warn("failed fetching temps for plotting", e10);
+        }
+        const combinedYs = [];
+        if (predictedDataset.length)
+          combinedYs.push(...predictedDataset.map((p5) => p5.y));
+        if (tempDataset.length)
+          combinedYs.push(...tempDataset.map((p5) => p5.y));
+        const maxY = combinedYs.length ? Math.max(...combinedYs, 1) : 1;
+        const minY = combinedYs.length ? Math.min(...combinedYs, 0) : 0;
+        let yStart = Math.floor(minY * 1.2);
+        let yEnd = Math.ceil(maxY * 1.2);
+        if (yStart === yEnd)
+          yEnd = yStart + 1;
         this.graphData = {
-          graphs: new Map([[0, {type: GraphTypes.LineGraph, color: "#3f9062", graph: dataset}]]),
+          graphs: new Map([
+            [0, {type: GraphTypes.LineGraph, color: "#3f9062", graph: predictedDataset}],
+            [1, {type: GraphTypes.LineGraph, color: "#005ec3", graph: tempDataset}]
+          ]),
           x_range: {start: 0, end: 24, step: 0.25},
-          y_range: {start: 0, end: Math.ceil(maxY * 1.2), step: 0.25},
-          x_label: "Hours",
-          y_label: "kWh"
+          y_range: {start: yStart, end: yEnd, step: 0.25},
+          x_label: "Uren (in de toekomst, relatief aan nu)",
+          y_label: "kWh / \xB0C"
         };
         this.requestUpdate();
       });

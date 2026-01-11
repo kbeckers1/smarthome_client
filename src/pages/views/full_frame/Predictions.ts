@@ -61,18 +61,44 @@ export class PredictionLayout extends LitElement {
 
     firstUpdated(): void {
         // ensure we have the latest trendline and update graph whenever store changes
-        this.APIService.predictedTrend.subscribe((arr) => {
+        this.APIService.predictedTrend.subscribe(async (arr) => {
             const values = arr ?? [];
             console.log('h', values);
-            // build line dataset: x in hours, step 0.25 (15 minutes)
-            const dataset = values.map((v, i) => ({ x: i * 0.25, y: v }));
-            const maxY = Math.max(...values, 1);
+
+            // predicted kWh dataset
+            const predictedDataset = values.map((v, i) => ({ x: i * 0.25, y: v }));
+
+            // fetch and interpolate temperature series to 15-min resolution
+            let tempDataset: Array<{ x: number; y: number }> = [];
+            try {
+                const hourly = await this.APIService.fetch_temperature_24h_hourly();
+                const temps15 = this.APIService.interpolateTo15Min(hourly);
+                tempDataset = temps15.map((t, i) => ({ x: i * 0.25, y: t }));
+            } catch (e) {
+                console.warn('failed fetching temps for plotting', e);
+            }
+
+            // combine values to compute axis extents (simple approach)
+            const combinedYs: number[] = [];
+            if (predictedDataset.length) combinedYs.push(...predictedDataset.map(p => p.y));
+            if (tempDataset.length) combinedYs.push(...tempDataset.map(p => p.y));
+
+            const maxY = combinedYs.length ? Math.max(...combinedYs, 1) : 1;
+            const minY = combinedYs.length ? Math.min(...combinedYs, 0) : 0;
+
+            let yStart = Math.floor(minY * 1.2);
+            let yEnd = Math.ceil(maxY * 1.2);
+            if (yStart === yEnd) yEnd = yStart + 1;
+
             this.graphData = {
-                graphs: new Map([[0, { type: GraphTypes.LineGraph, color: '#3f9062', graph: dataset }]]),
+                graphs: new Map([
+                    [0, { type: GraphTypes.LineGraph, color: '#3f9062', graph: predictedDataset }],
+                    [1, { type: GraphTypes.LineGraph, color: '#005ec3', graph: tempDataset }]
+                ]),
                 x_range: { start: 0, end: 24, step: 0.25 },
-                y_range: { start: 0, end: Math.ceil(maxY * 1.2), step: 0.25 },
-                x_label: 'Hours',
-                y_label: 'kWh'
+                y_range: { start: yStart, end: yEnd, step: 0.25 },
+                x_label: 'Uren (in de toekomst, relatief aan nu)',
+                y_label: 'kWh / °C'
             };
             this.requestUpdate();
         });

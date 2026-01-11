@@ -7,14 +7,18 @@ export function drawLine(ctx: CanvasRenderingContext2D, graph: GraphWrapper<Grap
 
     const dataset = graph.graph;
 
-    // compute x entries (hours) used for scaling
+    // compute x/y span used for scaling
     const x_entries = (x_range.end - x_range.start);
     const y_entries = (y_range.end - y_range.start);
 
+    // transform a data point into canvas coordinates
+    // account for non-zero starts so negative ranges are supported
     const transform_point = (point: Point) => {
+        const rel_x = point.x - x_range.start;
+        const rel_y = point.y - y_range.start;
         return {
-            x: point.x * (graphBox.width / x_entries) + graphBox.x,
-            y: graphBox.height - (point.y * (graphBox.height / y_entries)) + graphBox.y
+            x: rel_x * (graphBox.width / x_entries) + graphBox.x,
+            y: graphBox.height - (rel_y * (graphBox.height / y_entries)) + graphBox.y
         } as Point
     }
 

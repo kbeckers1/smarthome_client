@@ -99,8 +99,8 @@ const kwh_graph: GraphData = {
         end: 5,
         step: 1
     },
-    x_label: 'Time in hours',
-    y_label: 'kWh usage',
+    x_label: 'Tijd in uren (vandaag)',
+    y_label: 'Energieverbruik in kWh',
     graphs: new Map<number, GraphWrapper<GraphTypes>>([
         [0, graph]
     ])
