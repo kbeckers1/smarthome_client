@@ -1528,7 +1528,7 @@
   };
   var _Router = class {
     constructor() {
-      this.state = r9(2);
+      this.state = r9(6);
     }
     route(route) {
       this.state.set(route);
