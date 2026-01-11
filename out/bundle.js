@@ -1522,13 +1522,13 @@
     1: {vanityName: "Apparaten", iconPath: "/public/devices.svg", pageSelector: "ly-devices", show: true},
     2: {vanityName: "Sensoren", iconPath: "/public/sensors.svg", pageSelector: "ly-sensors", show: true},
     3: {vanityName: "Weersvoorspelling", iconPath: "/public/weather.svg", pageSelector: "ly-predictions", show: true},
-    4: {vanityName: "Zonnepaneel", iconPath: "/public/solar.svg", pageSelector: "ly-solar", show: true},
+    4: {vanityName: "Zonnepanelen", iconPath: "/public/solar.svg", pageSelector: "ly-solar", show: true},
     5: {vanityName: "Account", iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
     6: {vanityName: "Auth", iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false}
   };
   var _Router = class {
     constructor() {
-      this.state = r9(6);
+      this.state = r9(2);
     }
     route(route) {
       this.state.set(route);
@@ -5141,10 +5141,10 @@
             gap: 15px;
         }
         .graph_box {
-            grid-column-start: 2;
-            grid-column-end: 2;
-            grid-row-start: 4;
-            grid-row-end: 9;
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 6;
             flex-direction: column;
         }
         .detail_box {
@@ -5167,7 +5167,11 @@
                     Sensoren
                 </md-title>
                 <div class="grid">
-                    
+                    <gl-surface width="auto" height="auto" class="graph_box">
+                        <adv-graph>
+                            
+                        </adv-graph>
+                    </gl-surface>
                 </div>
             </div>
         `;

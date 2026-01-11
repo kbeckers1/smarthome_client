@@ -1,5 +1,41 @@
 import {html, css, LitElement, TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import { GraphData, GraphTypes, GraphWrapper } from '../../../services/GraphController';
+
+const motion_graph: GraphWrapper<GraphTypes.ColumnGraph> = {
+    type: GraphTypes.ColumnGraph,
+    color: "#e1b400",
+    graph: []
+}
+const temp_graph: GraphWrapper<GraphTypes.ColumnGraph> = {
+    type: GraphTypes.ColumnGraph,
+    color: "#e1b400",
+    graph: []
+}
+const servo_graph: GraphWrapper<GraphTypes.ColumnGraph> = {
+    type: GraphTypes.ColumnGraph,
+    color: "#e1b400",
+    graph: []
+}
+const kwh_graph: GraphData = {
+    x_range: {
+        start: 0,
+        end: 24,
+        step: 0.25,
+    },
+    y_range: {
+        start: 0,
+        end: 30,
+        step: 1
+    },
+    x_label: 'Tijd in uren (vandaag)',
+    y_label: 'Sensorwaarden',
+    graphs: new Map<number, GraphWrapper<GraphTypes>>([
+        [0, servo_graph],
+        [1, motion_graph],
+        [2, temp_graph]
+    ])
+}
 
 const base_style = html`
     <style>
@@ -25,10 +61,10 @@ const base_style = html`
             gap: 15px;
         }
         .graph_box {
-            grid-column-start: 2;
-            grid-column-end: 2;
-            grid-row-start: 4;
-            grid-row-end: 9;
+            grid-column-start: 1;
+            grid-column-end: 3;
+            grid-row-start: 1;
+            grid-row-end: 6;
             flex-direction: column;
         }
         .detail_box {
@@ -55,7 +91,11 @@ export class SensorLayout extends LitElement {
                     Sensoren
                 </md-title>
                 <div class="grid">
-                    
+                    <gl-surface width="auto" height="auto" class="graph_box">
+                        <adv-graph .graph=${}>
+
+                        </adv-graph>
+                    </gl-surface>
                 </div>
             </div>
         `;

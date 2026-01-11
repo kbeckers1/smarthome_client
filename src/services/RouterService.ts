@@ -15,14 +15,14 @@ export const Routes: Record<number, Route> = {
     1: {vanityName: "Apparaten",         iconPath: "/public/devices.svg", pageSelector: "ly-devices", show: true},
     2: {vanityName: "Sensoren",          iconPath: "/public/sensors.svg", pageSelector: "ly-sensors", show: true},
     3: {vanityName: "Weersvoorspelling", iconPath: "/public/weather.svg", pageSelector: "ly-predictions", show: true},
-    4: {vanityName: "Zonnepaneel",       iconPath: "/public/solar.svg",   pageSelector: "ly-solar", show: true},
+    4: {vanityName: "Zonnepanelen",       iconPath: "/public/solar.svg",   pageSelector: "ly-solar", show: true},
     5: {vanityName: "Account",           iconPath: "/public/account.svg", pageSelector: "ly-account", show: true},
     6: {vanityName: "Auth",              iconPath: "/public/account.svg", pageSelector: "ly-auth", show: false},
 }
 
 // only changes the active Route.
 class _Router {
-    public state = signal(6)
+    public state = signal(2)
 
     route(route: number) {
         this.state.set(route)

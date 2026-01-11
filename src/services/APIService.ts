@@ -24,6 +24,10 @@ export interface Account {
     email: string,
     sessies: number
 }
+export interface SensorData {
+    type_meting: 'motion' | 'servo_angle' | 'temperature',
+    waarde: number
+}
 
 // This class controls our API state, provides API methods, and provides active auth state.
 export interface Request {
@@ -51,14 +55,19 @@ export class APIService implements ReactiveController {
     devices:  Store<Record<number, Device>>  = new Store({});
     accounts: Store<Record<number, Account>> = new Store({});
     me:       Store<Record<number, Account>> = new Store({});
-    innerTemp: Store<number> = new Store(0);
+
     outerTemp: Store<number> = new Store(0);
     humidity: Store<number> = new Store(0);
+
+    temperature: Store<Map<Date, number>> = new Store(new Map());
+    servo: Store<Map<Date, number>> = new Store(new Map());
+    motion: Store<Map<Date, number>> = new Store(new Map());
+
     predictedTrend: Store<number[]> = new Store([] as number[]);
     trendlineCoeffs: Store<{slope: number, offset: number} | null> = new Store(null);
-    // per-device aggregated energy + cost store: { [apparaat_id]: { totalEnergyKwh, totalCost } }
     deviceEnergy: Store<Record<number, { totalEnergyKwh: number, totalCost: number }>> = new Store({});
     fetchTime!: Date;
+
     private devicesUnsub?: () => void;
     private overThreshold: boolean = false;
     private readonly THRESHOLD_WATTS = 8.5;
@@ -483,6 +492,32 @@ export class APIService implements ReactiveController {
         const data = (current_data?.data ?? {})["current"];
         this.outerTemp.set(data['temperature_2m']);
         this.humidity.set(data['relative_humidity_2m']);
+    }
+
+    async fetch_sensor_history() {
+        // fetch sensor history
+        const res = await this.request<Array<SensorData>>({
+            Url: "http://localhost:5000/api/sensordata",
+            Catch: false,
+            Type: "GET",
+            Authorization: true,
+        })
+        if (!res.success) {
+            this.host.notificationController.value.notify({
+                style: 'red',
+                description: 'Error fetching data'
+            })
+            return Result.Fail
+        }
+        const dataArray = (res.data || []) as Array<SensorData>;
+        const data = dataArray.map((d) => ({ type_meting: d.type_meting, waarde: d.waarde }));
+        const motion = data.filter((value) => value.type_meting === "motion").map((value) => value.waarde);
+        const servo_angle = data.filter((value) => value.type_meting === "servo_angle").map((value) => value.waarde);
+        const temperature = data.filter((value) => value.type_meting === "temperature").map((value) => value.waarde);
+        this.motion.set(motion);
+        this.servo.set(servo_angle);
+        this.temperature.set(temperature);
+        return Result.Success;
     }
 }
 
