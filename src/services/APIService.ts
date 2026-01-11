@@ -26,7 +26,8 @@ export interface Account {
 }
 export interface SensorData {
     type_meting: 'motion' | 'servo_angle' | 'temperature',
-    waarde: number
+    waarde: number,
+    tijdstempel: string
 }
 
 // This class controls our API state, provides API methods, and provides active auth state.
@@ -217,7 +218,8 @@ export class APIService implements ReactiveController {
             this.fetch_accounts(),
             this.fetch_me(),
             this.fetch_weather_data(),
-            this.fetch_trendline()
+            this.fetch_trendline(),
+            this.fetch_sensor_history()
         ])
         console.log('Data retrieval finished')
     }
@@ -502,6 +504,7 @@ export class APIService implements ReactiveController {
             Type: "GET",
             Authorization: true,
         })
+        console.log(res.success)
         if (!res.success) {
             this.host.notificationController.value.notify({
                 style: 'red',
@@ -510,13 +513,40 @@ export class APIService implements ReactiveController {
             return Result.Fail
         }
         const dataArray = (res.data || []) as Array<SensorData>;
-        const data = dataArray.map((d) => ({ type_meting: d.type_meting, waarde: d.waarde }));
-        const motion = data.filter((value) => value.type_meting === "motion").map((value) => value.waarde);
-        const servo_angle = data.filter((value) => value.type_meting === "servo_angle").map((value) => value.waarde);
-        const temperature = data.filter((value) => value.type_meting === "temperature").map((value) => value.waarde);
-        this.motion.set(motion);
-        this.servo.set(servo_angle);
-        this.temperature.set(temperature);
+
+        // Build Date->value maps for each sensor type
+        const motionEntries: Array<[Date, number]> = [];
+        const servoEntries: Array<[Date, number]> = [];
+        const tempEntries: Array<[Date, number]> = [];
+
+        for (const d of dataArray) {
+            const ts = d.tijdstempel;
+            const date = ts ? new Date(ts) : null;
+            if (!date || isNaN(date.getTime())) continue;
+            const value = Number(d.waarde);
+            switch (d.type_meting) {
+                case 'motion':
+                    motionEntries.push([date, value]);
+                    break;
+                case 'servo_angle':
+                    servoEntries.push([date, value]);
+                    break;
+                case 'temperature':
+                    tempEntries.push([date, value]);
+                    break;
+            }
+        }
+
+        // Preserve chronological order (oldest -> newest)
+        motionEntries.sort((a, b) => a[0].getTime() - b[0].getTime());
+        servoEntries.sort((a, b) => a[0].getTime() - b[0].getTime());
+        tempEntries.sort((a, b) => a[0].getTime() - b[0].getTime());
+
+        console.log(motionEntries, servoEntries, tempEntries)
+
+        this.motion.set(new Map(motionEntries));
+        this.servo.set(new Map(servoEntries));
+        this.temperature.set(new Map(tempEntries));
         return Result.Success;
     }
 }

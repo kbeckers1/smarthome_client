@@ -3022,7 +3022,7 @@
       return this._state;
     }
     set(patch) {
-      if (Array.isArray(this._state) || Array.isArray(patch)) {
+      if (Array.isArray(this._state) || Array.isArray(patch) || this._state instanceof Map || patch instanceof Map) {
         this._state = patch;
         this.dispatchEvent(new CustomEvent("change", {detail: this._state}));
         return;
@@ -3126,9 +3126,11 @@
       this.devices = new Store({});
       this.accounts = new Store({});
       this.me = new Store({});
-      this.innerTemp = new Store(0);
       this.outerTemp = new Store(0);
       this.humidity = new Store(0);
+      this.temperature = new Store(new Map());
+      this.servo = new Store(new Map());
+      this.motion = new Store(new Map());
       this.predictedTrend = new Store([]);
       this.trendlineCoeffs = new Store(null);
       this.deviceEnergy = new Store({});
@@ -3252,7 +3254,8 @@
         this.fetch_accounts(),
         this.fetch_me(),
         this.fetch_weather_data(),
-        this.fetch_trendline()
+        this.fetch_trendline(),
+        this.fetch_sensor_history()
       ]);
       console.log("Data retrieval finished");
     }
@@ -3486,6 +3489,52 @@
       const data = (current_data?.data ?? {})["current"];
       this.outerTemp.set(data["temperature_2m"]);
       this.humidity.set(data["relative_humidity_2m"]);
+    }
+    async fetch_sensor_history() {
+      const res = await this.request({
+        Url: "http://localhost:5000/api/sensordata",
+        Catch: false,
+        Type: "GET",
+        Authorization: true
+      });
+      console.log(res.success);
+      if (!res.success) {
+        this.host.notificationController.value.notify({
+          style: "red",
+          description: "Error fetching data"
+        });
+        return Result.Fail;
+      }
+      const dataArray = res.data || [];
+      const motionEntries = [];
+      const servoEntries = [];
+      const tempEntries = [];
+      for (const d4 of dataArray) {
+        const ts = d4.tijdstempel;
+        const date = ts ? new Date(ts) : null;
+        if (!date || isNaN(date.getTime()))
+          continue;
+        const value = Number(d4.waarde);
+        switch (d4.type_meting) {
+          case "motion":
+            motionEntries.push([date, value]);
+            break;
+          case "servo_angle":
+            servoEntries.push([date, value]);
+            break;
+          case "temperature":
+            tempEntries.push([date, value]);
+            break;
+        }
+      }
+      motionEntries.sort((a5, b4) => a5[0].getTime() - b4[0].getTime());
+      servoEntries.sort((a5, b4) => a5[0].getTime() - b4[0].getTime());
+      tempEntries.sort((a5, b4) => a5[0].getTime() - b4[0].getTime());
+      console.log(motionEntries, servoEntries, tempEntries);
+      this.motion.set(new Map(motionEntries));
+      this.servo.set(new Map(servoEntries));
+      this.temperature.set(new Map(tempEntries));
+      return Result.Success;
     }
   };
   var apiContext = n10("apiService");
@@ -4464,6 +4513,17 @@
         await new ToggleDevice(this.NotificationController, this.APIService).start(id, now_active);
       }, apparaat_id, nu_actief);
     }
+    toArray(v4) {
+      if (!v4)
+        return [];
+      if (v4 instanceof Map)
+        return Array.from(v4.values());
+      if (Array.isArray(v4))
+        return v4;
+      if (typeof v4 === "object")
+        return Object.values(v4).map((x3) => Number(x3));
+      return [];
+    }
     render() {
       const devicesState = Object.values(this.APIService?.devices.value);
       const passable = devicesState.map((value) => ({
@@ -4481,6 +4541,8 @@
           }
         }
       }));
+      const latest = (vals) => vals.length ? vals[vals.length - 1] : null;
+      const fmt = (v4, decimals = 1) => v4 == null ? "\u2014" : Number(v4).toFixed(decimals);
       const dynamicSheet = Object.assign({}, sheet2, {values: Object.values(passable)});
       return x`
             ${base_style13}
@@ -4497,7 +4559,7 @@
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
                             <md-richtext>Binnentemperatuur</md-richtext>
-                            <md-title>21 °C</md-title>
+                            <md-title>${fmt(latest(this.toArray(this.APIService?.temperature?.value)), 1)} °C</md-title>
                             <md-richtext style="color: #3f9062!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">
@@ -5134,24 +5196,35 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: 2fr 2fr;
+            grid-template-columns: 2fr 2fr 2fr;
             grid-auto-rows: 10%;
             height: 100%;
             width: 100%;
             gap: 15px;
         }
+        .box_1 {
+            grid-column-start: 1;
+            grid-column-end: 1;
+            grid-row-start: 6;
+            grid-row-end: 9;
+        }
+        .box_2 {
+            grid-column-start: 2;
+            grid-column-end: 2;
+            grid-row-start: 6;
+            grid-row-end: 9;
+        }
+        .box_3 {
+            grid-column-start: 3;
+            grid-column-end: 3;
+            grid-row-start: 6;
+            grid-row-end: 9;
+        }
         .graph_box {
             grid-column-start: 1;
-            grid-column-end: 3;
+            grid-column-end: 4;
             grid-row-start: 1;
             grid-row-end: 6;
-            flex-direction: column;
-        }
-        .detail_box {
-            grid-column-start: 1;
-            grid-column-end: 3;
-            grid-row-start: 1;
-            grid-row-end: 4;
         }
     </style>    
 `;
@@ -5159,7 +5232,61 @@
     constructor() {
       super();
     }
+    firstUpdated() {
+      if (this.APIService && !this.ServoConsumer) {
+        this.ServoConsumer = new StoreConsumer(this, this.APIService.servo);
+        this.MotionConsumer = new StoreConsumer(this, this.APIService.motion);
+        this.TempConsumer = new StoreConsumer(this, this.APIService.temperature);
+      }
+    }
+    updated() {
+      if (this.APIService && !this.ServoConsumer) {
+        this.ServoConsumer = new StoreConsumer(this, this.APIService.servo);
+        this.MotionConsumer = new StoreConsumer(this, this.APIService.motion);
+        this.TempConsumer = new StoreConsumer(this, this.APIService.temperature);
+      }
+    }
+    toArray(v4) {
+      if (!v4)
+        return [];
+      if (v4 instanceof Map)
+        return Array.from(v4.values());
+      if (Array.isArray(v4))
+        return v4;
+      if (typeof v4 === "object")
+        return Object.values(v4).map((x3) => Number(x3));
+      return [];
+    }
     render() {
+      const servoVals = this.toArray(this.APIService?.servo?.value);
+      const motionVals = this.toArray(this.APIService?.motion?.value);
+      const tempVals = this.toArray(this.APIService?.temperature?.value);
+      const maxLen = Math.max(servoVals.length, motionVals.length, tempVals.length, 1);
+      const buildColumns = (vals, color) => {
+        const graph3 = {
+          type: GraphTypes.ColumnGraph,
+          color,
+          graph: vals.map((v4, i9) => ({x: i9 + 0.5, y: Number(v4) || 0, width: 0.8}))
+        };
+        return graph3;
+      };
+      const allValues = [...servoVals, ...motionVals, ...tempVals].map((v4) => Number(v4) || 0);
+      const minVal = allValues.length ? Math.min(...allValues) : 0;
+      const maxVal = allValues.length ? Math.max(...allValues) : 10;
+      const padding = Math.max(1, Math.ceil((maxVal - minVal) * 0.1));
+      const graphData = {
+        x_range: {start: 0, end: maxLen, step: 1},
+        y_range: {start: Math.floor(minVal - padding), end: Math.ceil(maxVal + padding), step: 0.1},
+        x_label: "Moment",
+        y_label: "Sensorwaarden",
+        graphs: new Map([
+          [0, buildColumns(servoVals, "#3f9062")],
+          [1, buildColumns(tempVals, "#005ec3")],
+          [2, buildColumns(motionVals, "#e1b400")]
+        ])
+      };
+      const latest = (vals) => vals.length ? vals[vals.length - 1] : null;
+      const fmt = (v4, decimals = 1) => v4 == null ? "\u2014" : Number(v4).toFixed(decimals);
       return x`
             ${base_style18}
             <div class="inner">
@@ -5167,9 +5294,29 @@
                     Sensoren
                 </md-title>
                 <div class="grid">
+                    <gl-surface width="auto" height="auto" class="box_1">
+                            <gl-data-tile width="100%" height="auto" color="#3f9062">
+                                <md-richtext>Servo</md-richtext>
+                                <md-title>${fmt(latest(servoVals), 0)}%</md-title>
+                                <md-richtext style="color: #3f9062!important; text-size: 10px;">huidig</md-richtext>
+                            </gl-data-tile>
+                    </gl-surface>
+                    <gl-surface width="auto" height="auto" class="box_2">
+                        <gl-data-tile width="100%" height="auto" color="#005ec3">
+                            <md-richtext>Temperatuur</md-richtext>
+                            <md-title>${fmt(latest(tempVals), 1)} °C</md-title>
+                            <md-richtext style="color: #005ec3!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                    </gl-surface>
+                    <gl-surface width="auto" height="auto" class="box_3">
+                        <gl-data-tile width="100%" height="auto" color="#e1b400">
+                            <md-richtext>Motion</md-richtext>
+                            <md-title>${latest(motionVals) == null ? "\u2014" : String(latest(motionVals))}</md-title>
+                            <md-richtext style="color: #e1b400!important; text-size: 10px;">huidig</md-richtext>
+                        </gl-data-tile>
+                    </gl-surface>
                     <gl-surface width="auto" height="auto" class="graph_box">
-                        <adv-graph>
-                            
+                        <adv-graph .graph=${graphData}>
                         </adv-graph>
                     </gl-surface>
                 </div>
@@ -5177,6 +5324,9 @@
         `;
     }
   };
+  __decorate([
+    c7({context: apiContext})
+  ], SensorLayout.prototype, "APIService", 2);
   SensorLayout = __decorate([
     t3("ly-sensors")
   ], SensorLayout);

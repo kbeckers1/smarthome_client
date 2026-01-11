@@ -213,6 +213,18 @@ export class HomeLayout extends LitElement {
         )
     }
 
+    // normalize store value (Map<Date,number> or number[])
+    private toArray(v: any): number[] {
+        if (!v) return [];
+        if (v instanceof Map) return Array.from(v.values()) as number[];
+        if (Array.isArray(v)) return v as number[];
+        // if object-ish, try Object.values
+        if (typeof v === 'object') return Object.values(v).map((x: any) => Number(x));
+        return [];
+    }
+
+    
+
     render() {
         // we manage Device data
         const devicesState: Array<Device> = Object.values((this.APIService as APIService)?.devices.value) as unknown as Array<Device>
@@ -234,6 +246,9 @@ export class HomeLayout extends LitElement {
             }
         }))
 
+        const latest = (vals: number[]) => vals.length ? vals[vals.length - 1] : null;
+        const fmt = (v: number | null, decimals = 1) => v == null ? '—' : (Number(v).toFixed(decimals));
+
         // build our sheet
         const dynamicSheet = Object.assign({}, sheet, { values: Object.values(passable) });
         return html`
@@ -251,7 +266,7 @@ export class HomeLayout extends LitElement {
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#3f9062" style="flex: 1 1 auto;">
                             <md-richtext>Binnentemperatuur</md-richtext>
-                            <md-title>21 °C</md-title>
+                            <md-title>${fmt(latest(this.toArray(this.APIService?.temperature?.value)), 1)} °C</md-title>
                             <md-richtext style="color: #3f9062!important; text-size: 10px;">huidig</md-richtext>
                         </gl-data-tile>
                         <gl-data-tile height="200px" color="#c30000" style="flex: 1 1 auto;">

@@ -19,7 +19,9 @@ export class Store<T = Record<string, any>> extends EventTarget {
   set(patch: MaybePartial<T>) {
     // If either current state or patch is an Array, replace directly to avoid
     // converting arrays into plain objects via shallow-merge.
-    if (Array.isArray(this._state) || Array.isArray(patch)) {
+    // If either current state or patch is an Array or a Map, replace directly
+    // to avoid converting them into plain objects via shallow-merge.
+    if (Array.isArray(this._state) || Array.isArray(patch) || this._state instanceof Map || patch instanceof Map) {
       this._state = patch as T;
       this.dispatchEvent(new CustomEvent('change', { detail: this._state }));
       return;
